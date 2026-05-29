@@ -1,6 +1,6 @@
-# due Mesh 开发模式 (v2.5.2)
+# due Mesh 开发模式 (v2.5.7)
 
-本文档详细介绍 due v2.5.2 框架中 Mesh（微服务）的开发模式。
+本文档详细介绍 due v2.5.7 框架中 Mesh（微服务）的开发模式。
 
 ## Mesh 概述
 
@@ -19,7 +19,7 @@ Mesh 服务是 due 架构中的无状态微服务层，负责：
 | 协议 | TCP/KCP/WS | Actor 消息 | RPCX/gRPC |
 | 用途 | 连接管理 | 游戏逻辑 | 业务服务 |
 
-## 创建 Mesh 服务 (v2.5.2)
+## 创建 Mesh 服务 (v2.5.7)
 
 ### 基础 Mesh 服务
 
@@ -40,7 +40,7 @@ func main() {
 
     // 定位器
     locator := redis.NewLocator(
-        redis.WithAddr("127.0.0.1:6379"),
+        redis.WithAddrs("127.0.0.1:6379"),
     )
 
     // 注册中心
@@ -58,6 +58,14 @@ func main() {
         mesh.WithLocator(locator),
         mesh.WithRegistry(registry),
         mesh.WithTransporter(transporter),
+        // v2.5.7: 新增 RPC 配置选项
+        mesh.WithConnNum(5),
+        mesh.WithCallTimeout(3*time.Second),
+        mesh.WithDialTimeout(3*time.Second),
+        mesh.WithDialRetryTimes(3),
+        mesh.WithWriteTimeout(0),
+        mesh.WithWriteQueueSize(2048),
+        mesh.WithFaultRecoveryTime(5*time.Second),
     )
 
     // 注册服务提供者
@@ -87,10 +95,18 @@ component := mesh.NewMesh(
     mesh.WithLocator(locator),
     mesh.WithRegistry(registry),
     mesh.WithTransporter(transporter),
+    // v2.5.7: 新增 RPC 配置选项
+    mesh.WithConnNum(5),
+    mesh.WithCallTimeout(3*time.Second),
+    mesh.WithDialTimeout(3*time.Second),
+    mesh.WithDialRetryTimes(3),
+    mesh.WithWriteTimeout(0),
+    mesh.WithWriteQueueSize(2048),
+    mesh.WithFaultRecoveryTime(5*time.Second),
 )
 ```
 
-## 服务间通信 (v2.5.2)
+## 服务间通信 (v2.5.7)
 
 ### Mesh 调用 Node
 
@@ -128,7 +144,7 @@ func callOtherMesh(proxy *proxy.Proxy, serviceName string, method string, req in
 }
 ```
 
-## 配置管理 (v2.5.2)
+## 配置管理 (v2.5.7)
 
 ```go
 type MeshConfig struct {
@@ -153,7 +169,7 @@ func main() {
 
     container := due.NewContainer()
 
-    locator := redis.NewLocator(redis.WithAddr(c.RedisAddr))
+    locator := redis.NewLocator(redis.WithAddrs(c.RedisAddr))
     registry := consul.NewRegistry(consul.WithAddr(c.ConsulAddr))
     transporter := rpcx.NewTransporter()
 
@@ -163,6 +179,9 @@ func main() {
         mesh.WithLocator(locator),
         mesh.WithRegistry(registry),
         mesh.WithTransporter(transporter),
+        // v2.5.7: 新增 RPC 配置选项
+        mesh.WithConnNum(5),
+        mesh.WithCallTimeout(3*time.Second),
     )
 
     container.Add(component)
@@ -190,7 +209,7 @@ func main() {
     container := due.NewContainer()
 
     locator := redis.NewLocator(
-        redis.WithAddr("127.0.0.1:6379"),
+        redis.WithAddrs("127.0.0.1:6379"),
     )
 
     registry := consul.NewRegistry(
@@ -205,6 +224,9 @@ func main() {
         mesh.WithLocator(locator),
         mesh.WithRegistry(registry),
         mesh.WithTransporter(transporter),
+        // v2.5.7: 新增 RPC 配置选项
+        mesh.WithConnNum(5),
+        mesh.WithCallTimeout(3*time.Second),
     )
 
     // 注册服务提供者
@@ -263,14 +285,15 @@ func (s *UserService) Login(ctx context.Context, req *LoginRequest, res *LoginRe
 }
 ```
 
-## v2.5.2 变化说明
+## v2.5.7 变化说明
 
-**重要**: due v2.5.2 调整了组件使用方式：
+**重要**: due v2.5.7 相比 v2.5.2 的主要变化：
 
-1. **使用 Container 统一管理**：所有组件通过 `due.NewContainer()` 管理
-2. **Mesh 作为组件**：使用 `mesh.NewMesh()` 创建组件
-3. **服务提供者注册**：使用 `AddServiceProvider()` 注册服务
-4. **RPCX 传输**：默认使用 RPCX 作为传输协议
+1. **增强的 RPC 配置**：Mesh 新增了多个 RPC 配置选项，提供更精细的控制
+2. **使用 Container 统一管理**：所有组件通过 `due.NewContainer()` 管理
+3. **Mesh 作为组件**：使用 `mesh.NewMesh()` 创建组件
+4. **服务提供者注册**：使用 `AddServiceProvider()` 注册服务
+5. **RPCX 传输**：默认使用 RPCX 作为传输协议
 
 ## 最佳实践
 

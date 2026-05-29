@@ -13,22 +13,21 @@ func main() {
 	// 创建容器
 	container := due.NewContainer()
 
-	// 创建 KCP 服务器 - 使用正常模式
-	// 模式说明:
-	//   0: 快速模式 (RTT ~20ms) - 适合竞技游戏、音游
-	//   1: 正常模式 (RTT ~40ms) - 适合 MOBA、FPS
-	//   2: 流畅模式 (RTT ~60ms) - 适合 MMO、休闲游戏
+	// 创建 KCP 服务器
 	server := kcp.NewServer(
-		kcp.WithPort(10000),
-		kcp.WithMode(1), // 正常模式
-		kcp.WithMaxConnNum(5000),
-		kcp.WithMsgSize(8192),
-		kcp.WithSendChanSize(2048),
+		kcp.WithServerListenAddr(":10000"),
+		kcp.WithServerMaxConnNum(5000),
+		kcp.WithServerMtu(1400),
+		kcp.WithServerNoDelay(1, 10, 2, 1),
+		kcp.WithServerAckNoDelay(true),
+		kcp.WithServerWindowSize(128, 512),
+		kcp.WithServerReadBuffer(4194304),
+		kcp.WithServerWriteBuffer(4194304),
 	)
 
 	// 创建定位器
 	locator := redis.NewLocator(
-		redis.WithAddr("127.0.0.1:6379"),
+		redis.WithAddrs("127.0.0.1:6379"),
 	)
 
 	// 创建注册中心

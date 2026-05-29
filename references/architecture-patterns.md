@@ -1,6 +1,6 @@
-# due 架构设计模式 (v2.5.2)
+# due 架构设计模式 (v2.5.7)
 
-本文档详细介绍 due v2.5.2 框架的架构设计模式和核心概念。
+本文档详细介绍 due v2.5.7 框架的架构设计模式和核心概念。
 
 ## 三层架构
 
@@ -44,7 +44,7 @@ due 采用 Gate → Node → Mesh 三层架构设计：
 - 支持多种协议
 - 心跳检测和断线重连
 
-**示例配置 (v2.5.2)**：
+**示例配置 (v2.5.7)**：
 ```go
 package main
 
@@ -59,8 +59,8 @@ import (
 func main() {
     container := due.NewContainer()
 
-    server := ws.NewServer(ws.WithPort(8800))
-    locator := redis.NewLocator(redis.WithAddr("127.0.0.1:6379"))
+    server := ws.NewServer(ws.WithServerAddr(":8800"))
+    locator := redis.NewLocator(redis.WithAddrs("127.0.0.1:6379"))
     registry := consul.NewRegistry(consul.WithAddr("127.0.0.1:8500"))
 
     component := gate.NewGate(
@@ -69,6 +69,9 @@ func main() {
         gate.WithServer(server),
         gate.WithLocator(locator),
         gate.WithRegistry(registry),
+        // v2.5.7: 新增 RPC 配置选项
+        gate.WithConnNum(5),
+        gate.WithCallTimeout(3*time.Second),
     )
 
     container.Add(component)
@@ -89,7 +92,7 @@ func main() {
 - Actor 模型隔离状态
 - 消息队列保证顺序
 
-**示例配置 (v2.5.2)**：
+**示例配置 (v2.5.7)**：
 ```go
 package main
 
@@ -103,7 +106,7 @@ import (
 func main() {
     container := due.NewContainer()
 
-    locator := redis.NewLocator(redis.WithAddr("127.0.0.1:6379"))
+    locator := redis.NewLocator(redis.WithAddrs("127.0.0.1:6379"))
     registry := consul.NewRegistry(consul.WithAddr("127.0.0.1:8500"))
 
     component := node.NewNode(
@@ -111,6 +114,9 @@ func main() {
         node.WithName("node"),
         node.WithLocator(locator),
         node.WithRegistry(registry),
+        // v2.5.7: 新增 RPC 配置选项
+        node.WithConnNum(5),
+        node.WithCallTimeout(3*time.Second),
     )
 
     // 注册路由处理器
@@ -137,11 +143,11 @@ func initListen(proxy *node.Proxy) {
 - RESTful/gRPC 接口
 - 服务发现集成
 
-## 服务发现 (v2.5.2)
+## 服务发现 (v2.5.7)
 
-due v2.5.2 支持多种服务发现后端，模块路径为 `/v2`：
+due v2.5.7 支持多种服务发现后端，模块路径为 `/v2`：
 
-### Consul (v2.5.2)
+### Consul (v2.5.7)
 
 ```go
 import "github.com/dobyte/due/registry/consul/v2"
@@ -153,37 +159,37 @@ reg := consul.NewRegistry(
 )
 ```
 
-### Etcd (v2.5.2)
+### Etcd (v2.5.7)
 
 ```go
 import "github.com/dobyte/due/registry/etcd/v2"
 
 reg := etcd.NewRegistry(
-    etcd.WithAddr("127.0.0.1:2379"),
+    etcd.WithAddrs("127.0.0.1:2379"),
     etcd.WithID("node-001"),
     etcd.WithName("node"),
 )
 ```
 
-### Nacos (v2.5.2)
+### Nacos (v2.5.7)
 
 ```go
 import "github.com/dobyte/due/registry/nacos/v2"
 
 reg := nacos.NewRegistry(
-    nacos.WithAddr("127.0.0.1:8848"),
+    nacos.WithUrls("127.0.0.1:8848"),
     nacos.WithNamespace("public"),
 )
 ```
 
-## 通信机制 (v2.5.2)
+## 通信机制 (v2.5.7)
 
 ### Gate ↔ Node
 
 通过 RPC 通信，支持 gRPC 和 RPCX：
 
 ```go
-// RPCX 传输 (v2.5.2 推荐)
+// RPCX 传输 (v2.5.7 推荐)
 import "github.com/dobyte/due/transport/rpcx/v2"
 
 trans := rpcx.NewTransporter()
@@ -192,6 +198,9 @@ component := node.NewNode(
     node.WithLocator(locator),
     node.WithRegistry(registry),
     node.WithTransporter(trans),
+    // v2.5.7: 新增 RPC 配置选项
+    node.WithConnNum(5),
+    node.WithCallTimeout(3*time.Second),
 )
 ```
 
@@ -229,9 +238,9 @@ due 使用 Actor 模型处理有状态游戏逻辑：
 - **并发性**：多 Actor 并行执行
 - **位置透明**：可跨 Node 寻址
 
-### Actor 生命周期 (v2.5.2)
+### Actor 生命周期 (v2.5.7)
 
-在 due v2.5.2 中，Actor 通过 Router 处理器实现：
+在 due v2.5.7 中，Actor 通过 Router 处理器实现：
 
 ```go
 import (

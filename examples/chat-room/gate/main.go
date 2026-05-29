@@ -13,12 +13,12 @@ func main() {
 	container := due.NewContainer()
 
 	server := ws.NewServer(
-		ws.WithPort(8800),
-		ws.WithMaxConnNum(10000),
+		ws.WithServerAddr(":8800"),
+		ws.WithServerMaxConnNum(10000),
 	)
 
 	locator := redis.NewLocator(
-		redis.WithAddr("127.0.0.1:6379"),
+		redis.WithAddrs("127.0.0.1:6379"),
 	)
 
 	registry := consul.NewRegistry(

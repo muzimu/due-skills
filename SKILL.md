@@ -1,10 +1,10 @@
 ---
 name: due-skills
 description: |
-  Comprehensive knowledge base for due game server framework (v2.5.2).
+  Comprehensive knowledge base for due game server framework (v2.5.7).
 
   **Use this skill when:**
-  - Working with due framework (any version, especially v2.5.2)
+  - Working with due framework (any version, especially v2.5.7)
   - Building distributed game servers or real-time applications
   - Implementing Gate services (TCP/KCP/WebSocket) for client connections
   - Creating Node services with Actor model for stateful game logic
@@ -16,7 +16,7 @@ description: |
   - Using Container pattern to manage component lifecycle
   - Implementing player session management and binding
 
-  **Always consult this skill for due-related tasks** - it contains v2.5.2 specific API changes, correct module paths (github.com/dobyte/due/v2), and production-ready patterns that prevent common mistakes like using wrong package imports or outdated APIs.
+  **Always consult this skill for due-related tasks** - it contains v2.5.7 specific API changes, correct module paths (github.com/dobyte/due/v2), and production-ready patterns that prevent common mistakes like using wrong package imports or outdated APIs.
 
   **Features:**
   - Complete architecture guides with Gate → Node → Mesh patterns
@@ -24,7 +24,7 @@ description: |
   - Multi-protocol support (TCP/KCP/WebSocket)
   - Production best practices for game servers
   - Common pitfall solutions (wrong imports, deprecated APIs)
-  - Updated for due v2.5.2 API changes (Container pattern, Router handlers)
+  - Updated for due v2.5.7 API changes (enhanced RPC config, Session disconnect support, HTTP multi-style handlers)
 license: Apache-2.0
 allowed-tools:
   - Read
@@ -82,15 +82,18 @@ directories:
 
 # due Skills for AI Agents
 
-This skill provides comprehensive due game server framework knowledge (v2.5.2), optimized for AI agents helping developers build production-ready distributed game servers. due is a lightweight, high-performance distributed game server framework (Apache 2.0 license), featuring standardized development patterns and proven deployment in enterprise game projects.
+This skill provides comprehensive due game server framework knowledge (v2.5.7), optimized for AI agents helping developers build production-ready distributed game servers. due is a lightweight, high-performance distributed game server framework (Apache 2.0 license), featuring standardized development patterns and proven deployment in enterprise game projects.
 
-**v2.5.2 Key Changes:**
-- Adjusted HTTP component route registration method
-- Fixed Node component Push method ordering bug
-- Fixed Node component WaitGroup count exception
-- Refactored cluster internal RPC communication transport module
-- Improved cluster debug mode causing RPC communication interruption
-- Minor performance improvements
+**v2.5.7 Key Changes:**
+- Enhanced RPC configuration options for Gate/Node/Mesh (connNum, callTimeout, dialTimeout, dialRetryTimes, writeTimeout, writeQueueSize, faultRecoveryTime)
+- Session API: Push/Multicast/Broadcast/Publish methods now support disconnect parameter for auto-closing connections after push
+- Session performance: Concurrent message pushing using errgroup for Multicast/Broadcast/Publish
+- HTTP Router: Added All method and support for multiple handler styles (due/fiber/express/net/http/fasthttp)
+- WebSocket: Replaced handshakeTimeout with writeTimeout, added writeQueueSize
+- **Breaking**: `WithAddr` renamed to `WithAddrs` for redis/etcd/kafka/memcache components (supports multiple addresses)
+- **Breaking**: NATS EventBus uses `WithUrl` instead of `WithAddr`
+- **Breaking**: Nacos uses `WithUrls` instead of `WithAddr`
+- Various bug fixes and performance optimizations
 
 ## 🎯 When to Use This Skill
 
@@ -320,15 +323,15 @@ Follow this path based on your needs:
 
 ## 📝 Version Compatibility
 
-- **Target version**: due v2.5.2 (Apache 2.0 licensed)
-- **Go version**: Go 1.18 or later recommended
+- **Target version**: due v2.5.7 (Apache 2.0 licensed)
+- **Go version**: Go 1.25.0 or later recommended
 - **Module path**: github.com/dobyte/due/v2
 - **Dependencies**: grpc, rpcx, redis, nats, kafka, rabbitmq drivers as needed
 
-## 🚀 Quick Start (v2.5.2)
+## 🚀 Quick Start (v2.5.7)
 
 ```bash
-# Get due v2.5.2
+# Get due v2.5.7
 go get -u github.com/dobyte/due/v2@latest
 
 # Get required components
@@ -338,7 +341,7 @@ go get -u github.com/dobyte/due/registry/consul/v2@latest
 go get -u github.com/dobyte/due/transport/rpcx/v2@latest
 ```
 
-**Gate Server Example (v2.5.2):**
+**Gate Server Example (v2.5.7):**
 ```go
 package main
 
@@ -359,13 +362,18 @@ func main() {
       gate.WithServer(server),
       gate.WithLocator(locator),
       gate.WithRegistry(registry),
+      // v2.5.7: 新增 RPC 配置选项
+      gate.WithCallTimeout(5*time.Second),
+      gate.WithDialTimeout(3*time.Second),
+      gate.WithWriteTimeout(0),
+      gate.WithWriteQueueSize(4096),
    )
    container.Add(component)
    container.Serve()
 }
 ```
 
-**Node Server Example (v2.5.2):**
+**Node Server Example (v2.5.7):**
 ```go
 package main
 
@@ -383,6 +391,9 @@ func main() {
    component := node.NewNode(
       node.WithLocator(locator),
       node.WithRegistry(registry),
+      // v2.5.7: 新增 RPC 配置选项
+      node.WithConnNum(10),
+      node.WithCallTimeout(5*time.Second),
    )
    initListen(component.Proxy())
    container.Add(component)

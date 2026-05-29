@@ -1,20 +1,23 @@
-# due 快速开始指南 (v2.5.2)
+# due 快速开始指南 (v2.5.7)
 
-本指南帮助你快速开始使用 due v2.5.2 游戏服务器框架。
+本指南帮助你快速开始使用 due v2.5.7 游戏服务器框架。
 
 ## 版本说明
 
-**当前目标版本**: due v2.5.2
+**当前目标版本**: due v2.5.7
 
-**v2.5.2 更新内容**:
-- 调整 http 组件路由注册方法
-- 修复 node 组件 Push 方法无序的 BUG
-- 修复 node 组件 WaitGroup 计数异常 BUG
-- 重构集群内部 RPC 通信传输模块
-- 改进集群调试模式引发的 RPC 通信中断问题
-- 小幅提升性能
+**v2.5.7 更新内容**:
+- 增强 RPC 配置选项（connNum、callTimeout、dialTimeout 等）
+- Session API: Push/Multicast/Broadcast/Publish 新增 disconnect 参数
+- 使用 errgroup 并发处理批量推送，提升性能
+- HTTP Router 新增 All 方法，支持多种处理器风格
+- WebSocket: handshakeTimeout 改为 writeTimeout，新增 writeQueueSize
+- **Breaking**: `WithAddr` 重命名为 `WithAddrs`（redis/etcd/kafka/memcache）
+- **Breaking**: NATS EventBus 使用 `WithUrl` 替代 `WithAddr`
+- **Breaking**: Nacos 使用 `WithUrls` 替代 `WithAddr`
+- **Breaking**: 网络服务器选项统一使用 `Server` 前缀（如 `WithPort` → `WithServerAddr`）
 
-## 安装 due v2.5.2
+## 安装 due v2.5.7
 
 在你的 Go 项目中添加 due 依赖：
 
@@ -48,7 +51,7 @@ cd due
 docker-compose up -d
 ```
 
-## 创建第一个 Gate 服务 (v2.5.2)
+## 创建第一个 Gate 服务 (v2.5.7)
 
 Gate 服务负责管理客户端连接和消息路由：
 
@@ -91,7 +94,7 @@ func main() {
 }
 ```
 
-## 创建第一个 Node 服务 (v2.5.2)
+## 创建第一个 Node 服务 (v2.5.7)
 
 Node 服务使用 Actor 模型处理游戏逻辑：
 
@@ -194,11 +197,11 @@ func main() {
     container := due.NewContainer()
 
     server := ws.NewServer(
-        ws.WithPort(8800),  // WebSocket 端口
+        ws.WithServerAddr(":8800"),  // WebSocket 端口
     )
 
     locator := redis.NewLocator(
-        redis.WithAddr("127.0.0.1:6379"),
+        redis.WithAddrs("127.0.0.1:6379"),
     )
 
     registry := consul.NewRegistry(
@@ -233,7 +236,7 @@ func main() {
     container := due.NewContainer()
 
     locator := redis.NewLocator(
-        redis.WithAddr("127.0.0.1:6379"),
+        redis.WithAddrs("127.0.0.1:6379"),
     )
 
     registry := consul.NewRegistry(
@@ -261,7 +264,7 @@ func initListen(proxy *node.Proxy) {
 
 ## 项目结构
 
-一个典型的 due v2.5.2 项目结构：
+一个典型的 due v2.5.7 项目结构：
 
 ```
 my-game/

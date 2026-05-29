@@ -53,8 +53,8 @@ WebSocket connection failed: HTTP status code 404
 **解决方案**：
 ```go
 // 检查 WebSocket 路径配置
-gate := ws.NewGate(
-    ws.WithPath("/ws"),  // 确保路径匹配
+server := ws.NewServer(
+    ws.WithServerPath("/ws"),  // 确保路径匹配
     // ...
 )
 
@@ -69,8 +69,8 @@ gate := ws.NewGate(
 **解决方案**：
 ```go
 // 1. 检查心跳配置
-gate := ws.NewGate(
-    ws.WithHeartbeatInterval(30),  // 30 秒心跳
+server := ws.NewServer(
+    ws.WithServerHeartbeatInterval(30*time.Second),  // 30 秒心跳
 )
 
 // 2. 客户端实现心跳
@@ -79,9 +79,8 @@ setInterval(() => {
 }, 25000);  // 25 秒发送一次心跳
 
 // 3. 检查超时设置
-gate := ws.NewGate(
-    ws.WithReadTimeout(time.Minute * 2),
-    ws.WithWriteTimeout(time.Minute * 2),
+server := ws.NewServer(
+    ws.WithServerWriteTimeout(time.Minute * 2),
 )
 ```
 
@@ -91,11 +90,10 @@ gate := ws.NewGate(
 
 **解决方案**：
 ```go
-// 调整 KCP 模式
-gate := kcp.NewGate(
-    kcp.WithMode(0),  // 0: 快速模式，1: 正常模式，2: 流畅模式
-    kcp.WithFlushInterval(10),  // 刷新间隔（毫秒）
-    kcp.WithNoDelay(1, 10, 2, 1),  // 无延迟配置
+// 调整 KCP 配置
+server := kcp.NewServer(
+    kcp.WithServerNoDelay(1, 10, 2, 1),  // 无延迟配置
+    kcp.WithServerAckNoDelay(true),       // ACK 无延迟
 )
 
 // 根据网络环境选择模式：
@@ -216,8 +214,7 @@ reg := consul.NewRegistry(
 ```go
 // 1. 配置传输超时
 trans := grpc.NewTransport(
-    grpc.WithDialTimeout(time.Second),
-    grpc.WithTimeout(time.Second * 3),
+    grpc.WithClientDialTimeout(time.Second),
 )
 
 // 2. 检查服务健康状态
@@ -275,7 +272,7 @@ defer rows.Close()
 ```go
 // 1. 配置连接池和超时
 driver := redis.NewDriver(
-    redis.WithAddr("127.0.0.1:6379"),
+    redis.WithAddrs("127.0.0.1:6379"),
     redis.WithPoolSize(50),
     redis.WithDialTimeout(time.Second * 5),
     redis.WithReadTimeout(time.Second * 3),

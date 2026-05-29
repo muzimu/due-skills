@@ -1,12 +1,12 @@
-# due 组件使用指南 (v2.5.2)
+# due 组件使用指南 (v2.5.7)
 
-本文档详细介绍 due v2.5.2 框架提供的核心组件使用方法。
+本文档详细介绍 due v2.5.7 框架提供的核心组件使用方法。
 
 ## 日志组件 (log/v2)
 
-due v2.5.2 支持多种日志驱动：Console、File、Aliyun、Tencent。
+due v2.5.7 支持多种日志驱动：Console、File、Aliyun、Tencent。
 
-### Console 日志 (v2.5.2)
+### Console 日志 (v2.5.7)
 
 ```go
 import "github.com/dobyte/due/v2/log"
@@ -21,7 +21,7 @@ log.Warn("警告信息")
 log.Error("错误信息", "error", err)
 ```
 
-### File 日志 (v2.5.2)
+### File 日志 (v2.5.7)
 
 ```go
 import (
@@ -43,7 +43,7 @@ driver := file.NewDriver(
 log.SetDriver(driver)
 ```
 
-### Aliyun 日志 (v2.5.2)
+### Aliyun 日志 (v2.5.7)
 
 ```go
 import (
@@ -62,7 +62,7 @@ driver := aliyun.NewDriver(
 log.SetDriver(driver)
 ```
 
-### Tencent 日志 (v2.5.2)
+### Tencent 日志 (v2.5.7)
 
 ```go
 import (
@@ -94,7 +94,7 @@ log.WithFields(log.Fields{
 
 due 支持多种配置中心：Consul、Etcd、Nacos，支持 JSON/YAML/TOML/XML 格式。
 
-### Consul 配置 (v2.5.2)
+### Consul 配置 (v2.5.7)
 
 ```go
 import (
@@ -122,7 +122,7 @@ port := cfg.Int("gate.port")
 host := cfg.Get("gate.host")
 ```
 
-### Etcd 配置 (v2.5.2)
+### Etcd 配置 (v2.5.7)
 
 ```go
 import (
@@ -130,7 +130,7 @@ import (
 )
 
 source := etcd.NewSource(
-    etcd.WithAddr("127.0.0.1:2379"),
+    etcd.WithAddrs("127.0.0.1:2379"),
     etcd.WithPath("config/game"),
 )
 
@@ -138,7 +138,7 @@ cfg := config.NewConfig(config.WithSource(source))
 cfg.Load()
 ```
 
-### Nacos 配置 (v2.5.2)
+### Nacos 配置 (v2.5.7)
 
 ```go
 import (
@@ -146,7 +146,7 @@ import (
 )
 
 source := nacos.NewSource(
-    nacos.WithAddr("127.0.0.1:8848"),
+    nacos.WithUrls("127.0.0.1:8848"),
     nacos.WithDataID("game-config"),
     nacos.WithGroup("DEFAULT_GROUP"),
 )
@@ -185,7 +185,7 @@ cfg.Watch(func(key string, value interface{}) {
 
 due 支持 Redis 和 Memcache 缓存驱动。
 
-### Redis 缓存 (v2.5.2)
+### Redis 缓存 (v2.5.7)
 
 ```go
 import (
@@ -238,12 +238,11 @@ import (
 )
 
 driver := memcache.NewDriver(
-    memcache.WithAddr("127.0.0.1:11211"),
-    memcache.WithTimeout(time.Second),
+    memcache.WithAddrs("127.0.0.1:11211"),
 )
 ```
 
-### 分布式锁 (v2.5.2)
+### 分布式锁 (v2.5.7)
 
 ```go
 import "github.com/dobyte/due/v2/lock"
@@ -265,7 +264,7 @@ defer lock.Release(context.Background())
 
 due 支持多种 EventBus 后端：Redis、NATS、Kafka、RabbitMQ。
 
-### Redis EventBus (v2.5.2)
+### Redis EventBus (v2.5.7)
 
 ```go
 import (
@@ -290,7 +289,7 @@ bus.Subscribe(context.Background(), "user.login", func(event *UserLoginEvent) {
 })
 ```
 
-### NATS EventBus (v2.5.2)
+### NATS EventBus (v2.5.7)
 
 ```go
 import (
@@ -298,7 +297,7 @@ import (
 )
 
 bus := nats.NewEventBus(
-    nats.WithAddr("nats://127.0.0.1:4222"),
+    nats.WithUrl("nats://127.0.0.1:4222"),
     nats.WithSubject("game.events"),
 )
 
@@ -306,7 +305,7 @@ bus.Publish(context.Background(), "user.login", eventData)
 bus.Subscribe(context.Background(), "user.login", handler)
 ```
 
-### Kafka EventBus (v2.5.2)
+### Kafka EventBus (v2.5.7)
 
 ```go
 import (
@@ -323,28 +322,15 @@ bus.Publish(context.Background(), "user.login", eventData)
 bus.Subscribe(context.Background(), "user.login", handler)
 ```
 
-### RabbitMQ EventBus (v2.5.2)
+### RabbitMQ EventBus
 
-```go
-import (
-    "github.com/dobyte/due/eventbus/rabbitmq/v2"
-)
-
-bus := rabbitmq.NewEventBus(
-    rabbitmq.WithAddr("amqp://guest:guest@127.0.0.1:5672/"),
-    rabbitmq.WithExchange("game-exchange"),
-    rabbitmq.WithRoutingKey("user.login"),
-)
-
-bus.Publish(context.Background(), "user.login", eventData)
-bus.Subscribe(context.Background(), "user.login", handler)
-```
+**注意**: due v2.5.7 不包含 RabbitMQ EventBus 实现。如需使用 RabbitMQ，请自行实现 EventBus 接口或使用第三方库。
 
 ## 服务注册 (registry/v2)
 
-due v2.5.2 支持 Consul、Etcd、Nacos 服务注册。
+due v2.5.7 支持 Consul、Etcd、Nacos 服务注册。
 
-### Consul Registry (v2.5.2)
+### Consul Registry (v2.5.7)
 
 ```go
 import (
@@ -365,7 +351,7 @@ component := gate.NewGate(
 )
 ```
 
-### Etcd Registry (v2.5.2)
+### Etcd Registry (v2.5.7)
 
 ```go
 import (
@@ -373,13 +359,13 @@ import (
 )
 
 reg := etcd.NewRegistry(
-    etcd.WithAddr("127.0.0.1:2379"),
+    etcd.WithAddrs("127.0.0.1:2379"),
     etcd.WithID("node-001"),
     etcd.WithName("node"),
 )
 ```
 
-### Nacos Registry (v2.5.2)
+### Nacos Registry (v2.5.7)
 
 ```go
 import (
@@ -387,7 +373,7 @@ import (
 )
 
 reg := nacos.NewRegistry(
-    nacos.WithAddr("127.0.0.1:8848"),
+    nacos.WithUrls("127.0.0.1:8848"),
     nacos.WithNamespace("public"),
 )
 ```
@@ -413,7 +399,7 @@ reg.Watch("gate", func(services []*registry.Service) {
 
 due 支持 RSA 和 ECC 加密。
 
-### RSA 加密 (v2.5.2)
+### RSA 加密 (v2.5.7)
 
 ```go
 import (
@@ -436,7 +422,7 @@ signature, err := rsa.Sign(privateKey, data)
 valid, err := rsa.Verify(publicKey, data, signature)
 ```
 
-### ECC 加密 (v2.5.2)
+### ECC 加密 (v2.5.7)
 
 ```go
 import (
@@ -455,9 +441,9 @@ plaintext, err := ecc.Decrypt(privateKey, ciphertext)
 
 ## 会话组件 (session)
 
-### Session 管理 (v2.5.2)
+### Session 管理 (v2.5.7)
 
-在 due v2.5.2 中，Session 通过 Context 获取：
+在 due v2.5.7 中，Session 通过 Context 获取：
 
 ```go
 func handler(ctx gate.Context) {
@@ -493,9 +479,30 @@ func onDisconnect(ctx gate.Context) {
 }
 ```
 
+### v2.5.7 Session 新特性：disconnect 参数
+
+v2.5.7 的 Session API 新增了 `disconnect` 参数，支持推送消息后自动关闭连接：
+
+```go
+// Push 推送消息（异步）
+// disconnect: true 表示推送后自动关闭连接
+session.Push(gate.Conn, cid, true, kickMessage)
+
+// Multicast 推送组播消息（异步）
+session.Multicast(gate.User, uids, false, notifyMessage)
+
+// Broadcast 推送广播消息（异步）
+session.Broadcast(gate.User, false, broadcastMessage)
+
+// Publish 发布频道消息（异步）
+session.Publish("channel", false, channelMessage)
+```
+
+**性能优化：** v2.5.7 使用 `errgroup` 并发处理 Multicast/Broadcast/Publish，大幅提升批量推送性能。
+
 ## 任务组件 (task)
 
-### 本地任务 (v2.5.2)
+### 本地任务 (v2.5.7)
 
 ```go
 import "github.com/dobyte/due/v2/task"
@@ -517,7 +524,7 @@ ticker := task.TickFunc(time.Second*10, func() {
 ticker.Stop()
 ```
 
-### 分布式任务 (v2.5.2)
+### 分布式任务 (v2.5.7)
 
 ```go
 import (

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/dobyte/due/locate/redis/v2"
 	"github.com/dobyte/due/network/tcp/v2"
 	"github.com/dobyte/due/registry/consul/v2"
@@ -15,16 +17,15 @@ func main() {
 
 	// 创建 TCP 服务器
 	server := tcp.NewServer(
-		tcp.WithPort(9000),
-		tcp.WithMaxConnNum(10000),
-		tcp.WithMsgSize(4096),
-		tcp.WithSendChanSize(1024),
-		tcp.WithHeartbeatInterval(60),
+		tcp.WithServerAddr(":9000"),
+		tcp.WithServerMaxConnNum(10000),
+		tcp.WithServerWriteQueueSize(1024),
+		tcp.WithServerHeartbeatInterval(60*time.Second),
 	)
 
 	// 创建定位器
 	locator := redis.NewLocator(
-		redis.WithAddr("127.0.0.1:6379"),
+		redis.WithAddrs("127.0.0.1:6379"),
 	)
 
 	// 创建注册中心

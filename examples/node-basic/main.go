@@ -14,7 +14,7 @@ func main() {
 	container := due.NewContainer()
 
 	locator := redis.NewLocator(
-		redis.WithAddr("127.0.0.1:6379"),
+		redis.WithAddrs("127.0.0.1:6379"),
 	)
 
 	registry := consul.NewRegistry(

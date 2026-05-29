@@ -98,7 +98,7 @@ driver := file.NewDriver(
 ```go
 // Redis 连接池
 redisDriver := redis.NewDriver(
-    redis.WithAddr("127.0.0.1:6379"),
+    redis.WithAddrs("127.0.0.1:6379"),
     redis.WithPoolSize(50),           // 连接池大小
     redis.WithMinIdleConns(10),       // 最小空闲连接
     redis.WithPoolTimeout(time.Second * 30),
@@ -376,7 +376,8 @@ services:
 
 ```go
 func main() {
-    gate := ws.NewGate(...)
+    server := ws.NewServer(...)
+    component := gate.NewGate(gate.WithServer(server))
 
     // 监听信号
     ctx, cancel := context.WithCancel(context.Background())

@@ -1,6 +1,6 @@
-# due 示例代码 (v2.5.2)
+# due 示例代码 (v2.5.7)
 
-本目录包含 due v2.5.2 框架的完整可运行示例代码。
+本目录包含 due v2.5.7 框架的完整可运行示例代码。
 
 ## 目录结构
 
@@ -121,9 +121,23 @@ docker run -d --name redis -p 6379:6379 redis:latest
 docker run -d --name consul -p 8500:8500 consul:latest
 ```
 
-## v2.5.2 关键模式
+## v2.5.7 关键模式
 
 1. **Container 模式**: `due.NewContainer()` 统一管理组件
 2. **组件模式**: Gate/Node/Mesh 都作为组件创建
 3. **路由处理器**: Node 使用 `proxy.Router().AddRouteHandler()` 注册
 4. **模块路径**: 使用 `/v2` 路径导入
+
+## v2.5.7 Breaking Changes
+
+升级时请注意以下破坏性变更：
+
+| 组件 | 旧 API | 新 API |
+|------|--------|--------|
+| redis/etcd/kafka/memcache | `WithAddr` | `WithAddrs` |
+| NATS EventBus | `WithAddr` | `WithUrl` |
+| Nacos | `WithAddr` | `WithUrls` |
+| TCP 服务器 | `WithPort` / `WithMaxConnNum` | `WithServerAddr` / `WithServerMaxConnNum` |
+| WebSocket 服务器 | `WithPort` / `WithMaxConnNum` | `WithServerAddr` / `WithServerMaxConnNum` |
+| KCP 服务器 | `WithPort` / `WithMode` | `WithServerListenAddr` |
+| Session.Push | `Push(kind, target, msg)` | `Push(kind, target, disconnect, msg)` |

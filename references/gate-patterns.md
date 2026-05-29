@@ -1,6 +1,6 @@
-# due 网关开发模式 (v2.5.2)
+# due 网关开发模式 (v2.5.7)
 
-本文档详细介绍 due v2.5.2 框架中 Gate（网关）服务的开发模式。
+本文档详细介绍 due v2.5.7 框架中 Gate（网关）服务的开发模式。
 
 ## Gate 概述
 
@@ -10,7 +10,7 @@ Gate 服务是客户端与游戏服务器之间的入口，负责：
 - 会话管理
 - 消息路由到 Node
 
-## v2.5.2 Gate 完整示例
+## v2.5.7 Gate 完整示例
 
 ```go
 package main
@@ -29,12 +29,12 @@ func main() {
 
     // 创建 WebSocket 服务器
     server := ws.NewServer(
-        ws.WithPort(8800),
+        ws.WithServerAddr(":8800"),
     )
 
     // 创建定位器
     locator := redis.NewLocator(
-        redis.WithAddr("127.0.0.1:6379"),
+        redis.WithAddrs("127.0.0.1:6379"),
     )
 
     // 创建服务注册
@@ -49,6 +49,14 @@ func main() {
         gate.WithServer(server),
         gate.WithLocator(locator),
         gate.WithRegistry(registry),
+        // v2.5.7: 新增 RPC 配置选项
+        gate.WithConnNum(5),                    // 内部RPC拨号连接数，默认5
+        gate.WithCallTimeout(3*time.Second),    // 内部RPC调用超时时间，默认3s
+        gate.WithDialTimeout(3*time.Second),    // 内部RPC拨号超时时间，默认3s
+        gate.WithDialRetryTimes(3),             // 内部RPC拨号重试次数，默认3
+        gate.WithWriteTimeout(0),               // 内部RPC写入超时时间，默认0s（无超时）
+        gate.WithWriteQueueSize(2048),          // 内部RPC写入队列大小，默认2048
+        gate.WithFaultRecoveryTime(5*time.Second), // 内部RPC故障恢复时间，默认5s
     )
 
     // 添加组件到容器
@@ -59,9 +67,9 @@ func main() {
 }
 ```
 
-## 协议支持 (v2.5.2)
+## 协议支持 (v2.5.7)
 
-due v2.5.2 支持三种主流协议：
+due v2.5.7 支持三种主流协议：
 
 ### WebSocket 协议
 
@@ -83,8 +91,8 @@ func main() {
 
     // WebSocket 服务器
     server := ws.NewServer(
-        ws.WithPort(8800),
-        ws.WithMaxConnNum(10000),
+        ws.WithServerAddr(":8800"),
+        ws.WithServerMaxConnNum(10000),
     )
 
     // 定位器
@@ -125,8 +133,8 @@ func main() {
 
     // TCP 服务器
     server := tcp.NewServer(
-        tcp.WithPort(9000),
-        tcp.WithMaxConnNum(10000),
+        tcp.WithServerAddr(":9000"),
+        tcp.WithServerMaxConnNum(10000),
     )
 
     locator := redis.NewLocator()
@@ -147,12 +155,12 @@ func main() {
 
 ```go
 server := tcp.NewServer(
-    tcp.WithPort(9000),             // 监听端口
-    tcp.WithMaxConnNum(10000),      // 最大连接数
-    tcp.WithMsgSize(4096),          // 最大消息大小（字节）
-    tcp.WithSendChanSize(1024),     // 发送缓冲区大小
-    tcp.WithHeartbeatInterval(30),  // 心跳间隔（秒）
-    tcp.WithHeartbeatHandler(heartbeatHandler), // 心跳处理器
+    tcp.WithServerAddr(":9000"),                // 监听地址
+    tcp.WithServerMaxConnNum(10000),            // 最大连接数
+    tcp.WithServerWriteTimeout(0),              // 写入超时时间，默认0s（无超时）
+    tcp.WithServerWriteQueueSize(1024),         // 写入队列大小，默认512
+    tcp.WithServerHeartbeatInterval(30*time.Second), // 心跳间隔
+    tcp.WithServerHeartbeatMechanism(tcp.RespHeartbeat), // 心跳机制
 )
 ```
 
@@ -162,6 +170,8 @@ server := tcp.NewServer(
 package main
 
 import (
+    "time"
+
     "github.com/dobyte/due/locate/redis/v2"
     "github.com/dobyte/due/network/tcp/v2"
     "github.com/dobyte/due/registry/consul/v2"
@@ -175,24 +185,22 @@ func main() {
 
     // TCP 服务器
     server := tcp.NewServer(
-        tcp.WithPort(9000),
-        tcp.WithMaxConnNum(10000),
-        tcp.WithMsgSize(8192),
-        tcp.WithSendChanSize(2048),
-        tcp.WithHeartbeatInterval(60),
-        tcp.WithHeartbeatHandler(handleHeartbeat),
+        tcp.WithServerAddr(":9000"),
+        tcp.WithServerMaxConnNum(10000),
+        tcp.WithServerWriteTimeout(0),
+        tcp.WithServerWriteQueueSize(2048),
+        tcp.WithServerHeartbeatInterval(60*time.Second),
+        tcp.WithServerHeartbeatMechanism(tcp.RespHeartbeat),
     )
 
     // 定位器
     locator := redis.NewLocator(
-        redis.WithAddr("127.0.0.1:6379"),
+        redis.WithAddrs("127.0.0.1:6379"),
     )
 
     // 注册中心
     registry := consul.NewRegistry(
         consul.WithAddr("127.0.0.1:8500"),
-        consul.WithID("gate-tcp-001"),
-        consul.WithName("gate"),
     )
 
     // Gate 组件
@@ -206,11 +214,6 @@ func main() {
 
     container.Add(component)
     container.Serve()
-}
-
-// handleHeartbeat 心跳处理
-func handleHeartbeat(ctx gate.Context) {
-    log.Infof("收到心跳 cid=%d, uid=%d", ctx.Session().Cid(), ctx.Session().Uid())
 }
 ```
 
@@ -234,8 +237,7 @@ func main() {
 
     // KCP 服务器
     server := kcp.NewServer(
-        kcp.WithPort(10000),
-        kcp.WithMode(0),  // 0: 快速，1: 正常，2: 流畅
+        kcp.WithServerListenAddr(":10000"),
     )
 
     locator := redis.NewLocator()
@@ -256,11 +258,14 @@ func main() {
 
 ```go
 server := kcp.NewServer(
-    kcp.WithPort(10000),            // 监听端口
-    kcp.WithMode(0),                // 模式：0=快速 (20ms RTT), 1=正常 (40ms RTT), 2=流畅 (60ms RTT)
-    kcp.WithMaxConnNum(5000),       // 最大连接数
-    kcp.WithMsgSize(4096),          // 最大消息大小
-    kcp.WithSendChanSize(1024),     // 发送缓冲区大小
+    kcp.WithServerListenAddr(":10000"),     // 监听地址
+    kcp.WithServerMaxConnNum(5000),         // 最大连接数
+    kcp.WithServerMtu(1400),                // 最大传输单元
+    kcp.WithServerNoDelay(1, 10, 2, 1),     // 无延迟配置
+    kcp.WithServerAckNoDelay(true),         // ACK 无延迟
+    kcp.WithServerWindowSize(128, 512),     // 窗口大小
+    kcp.WithServerReadBuffer(4194304),      // 读取缓冲区大小
+    kcp.WithServerWriteBuffer(4194304),     // 写入缓冲区大小
 )
 ```
 
@@ -291,24 +296,24 @@ func main() {
 
     // KCP 服务器 - 使用正常模式
     server := kcp.NewServer(
-        kcp.WithPort(10000),
-        kcp.WithMode(1),              // 正常模式
-        kcp.WithMaxConnNum(5000),
-        kcp.WithMsgSize(8192),
-        kcp.WithSendChanSize(2048),
+        kcp.WithServerListenAddr(":10000"),
+        kcp.WithServerMaxConnNum(5000),
+        kcp.WithServerMtu(1400),
+        kcp.WithServerNoDelay(1, 10, 2, 1),
+        kcp.WithServerAckNoDelay(true),
+        kcp.WithServerWindowSize(128, 512),
+        kcp.WithServerReadBuffer(4194304),
+        kcp.WithServerWriteBuffer(4194304),
     )
 
     // 定位器
     locator := redis.NewLocator(
-        redis.WithAddr("127.0.0.1:6379"),
-        redis.WithDB(0),
+        redis.WithAddrs("127.0.0.1:6379"),
     )
 
     // 注册中心
     registry := consul.NewRegistry(
         consul.WithAddr("127.0.0.1:8500"),
-        consul.WithID("gate-kcp-001"),
-        consul.WithName("gate"),
     )
 
     // Gate 组件
@@ -360,11 +365,11 @@ func main() {
 └────────┴────────┴─────────┴──────────────┘
 ```
 
-## 会话管理 (v2.5.2)
+## 会话管理 (v2.5.7)
 
 ### 基础 Session 操作
 
-在 due v2.5.2 中，Session 由框架自动管理，通过 `ctx.Session()` 获取：
+在 due v2.5.7 中，Session 由框架自动管理，通过 `ctx.Session()` 获取：
 
 ```go
 func handler(ctx gate.Context) {
@@ -449,23 +454,65 @@ import (
 )
 
 // SendToUser 向指定玩家推送消息
-func SendToUser(ctx context.Context, proxy *gate.Proxy, uid int64, route int32, data interface{}) error {
-    return proxy.Push(ctx, uid, route, data)
+func SendToUser(session *gate.Session, uid int64, message []byte) error {
+    return session.Push(gate.User, uid, false, message)
 }
 
 // 使用示例
-func notifyPlayer(proxy *gate.Proxy, uid int64) {
+func notifyPlayer(session *gate.Session, uid int64) {
     type notifyData struct {
         Title string `json:"title"`
         Content string `json:"content"`
     }
 
-    proxy.Push(context.Background(), uid, 1001, &notifyData{
+    data := &notifyData{
         Title: "系统通知",
         Content: "欢迎加入游戏!",
-    })
+    }
+    // 序列化消息后推送
+    session.Push(gate.User, uid, false, data)
 }
 ```
+
+### v2.5.7 Session 新特性：disconnect 参数
+
+v2.5.7 的 Session API 新增了 `disconnect` 参数，支持推送消息后自动关闭连接：
+
+```go
+// Push 推送消息（异步）
+// disconnect: true 表示推送后自动关闭连接
+func (s *Session) Push(kind Kind, target int64, disconnect bool, message []byte) error
+
+// Multicast 推送组播消息（异步）
+// disconnect: true 表示推送后自动关闭连接
+func (s *Session) Multicast(kind Kind, targets []int64, disconnect bool, message []byte) (int64, error)
+
+// Broadcast 推送广播消息（异步）
+// disconnect: true 表示推送后自动关闭连接
+func (s *Session) Broadcast(kind Kind, disconnect bool, message []byte) (int64, error)
+
+// Publish 发布频道消息（异步）
+// disconnect: true 表示推送后自动关闭连接
+func (s *Session) Publish(channel string, disconnect bool, message []byte) (int64, error)
+```
+
+**使用示例：**
+
+```go
+// 推送消息并断开连接（例如：踢出玩家）
+session.Push(gate.Conn, cid, true, kickMessage)
+
+// 推送消息但保持连接（正常消息推送）
+session.Push(gate.Conn, cid, false, notifyMessage)
+
+// 批量推送并断开连接
+session.Multicast(gate.User, uids, true, kickMessage)
+
+// 广播消息给所有用户
+session.Broadcast(gate.User, false, broadcastMessage)
+```
+
+**性能优化：** v2.5.7 使用 `errgroup` 并发处理 Multicast/Broadcast/Publish，大幅提升批量推送性能。
 
 ### 玩家批量推送 (Broadcast)
 
@@ -473,14 +520,19 @@ func notifyPlayer(proxy *gate.Proxy, uid int64) {
 
 ```go
 // BroadcastToPlayers 向多个玩家推送消息
-func BroadcastToPlayers(ctx context.Context, proxy *gate.Proxy, uids []int64, route int32, data interface{}) error {
+func BroadcastToPlayers(session *gate.Session, uids []int64, message []byte) error {
     for _, uid := range uids {
-        if err := proxy.Push(ctx, uid, route, data); err != nil {
+        if err := session.Push(gate.User, uid, false, message); err != nil {
             // 处理推送失败（玩家可能已离线）
             log.Warnf("推送失败 uid=%d, error=%v", uid, err)
         }
     }
     return nil
+}
+
+// v2.5.7: 使用 Session 的 Multicast 方法（并发推送，性能更好）
+func BroadcastToPlayersV2(session *gate.Session, uids []int64, message []byte) (int64, error) {
+    return session.Multicast(gate.User, uids, false, message)
 }
 ```
 
@@ -545,7 +597,7 @@ import (
 // 配置 Redis Session 存储
 func setupSession() {
     store := redis.NewStore(
-        redis.WithAddr("127.0.0.1:6379"),
+        redis.WithAddrs("127.0.0.1:6379"),
         redis.WithPassword(""),
         redis.WithDB(0),
         redis.WithIdleTimeout(300), // 5 分钟空闲超时
@@ -657,9 +709,9 @@ func cleanupPlayerData(uid int64) {
 }
 ```
 
-## 消息路由 (v2.5.2)
+## 消息路由 (v2.5.7)
 
-在 due v2.5.2 中，Gate 自动处理消息路由到 Node，无需手动配置 Match 函数。
+在 due v2.5.7 中，Gate 自动处理消息路由到 Node，无需手动配置 Match 函数。
 
 消息自动根据 route 转发到对应的 Node Actor：
 
@@ -667,7 +719,7 @@ func cleanupPlayerData(uid int64) {
 Client → Gate(自动路由) → Node(Proxy.Router 处理)
 ```
 
-## 配置选项 (v2.5.2)
+## 配置选项 (v2.5.7)
 
 ### Gate 组件配置
 
@@ -678,6 +730,14 @@ component := gate.NewGate(
     gate.WithServer(server),        // 网络服务器
     gate.WithLocator(locator),      // 定位器
     gate.WithRegistry(registry),    // 注册中心
+    // v2.5.7: 新增 RPC 配置选项
+    gate.WithConnNum(5),                    // 内部RPC拨号连接数，默认5
+    gate.WithCallTimeout(3*time.Second),    // 内部RPC调用超时时间，默认3s
+    gate.WithDialTimeout(3*time.Second),    // 内部RPC拨号超时时间，默认3s
+    gate.WithDialRetryTimes(3),             // 内部RPC拨号重试次数，默认3
+    gate.WithWriteTimeout(0),               // 内部RPC写入超时时间，默认0s（无超时）
+    gate.WithWriteQueueSize(2048),          // 内部RPC写入队列大小，默认2048
+    gate.WithFaultRecoveryTime(5*time.Second), // 内部RPC故障恢复时间，默认5s
 )
 ```
 
@@ -685,10 +745,13 @@ component := gate.NewGate(
 
 ```go
 server := ws.NewServer(
-    ws.WithPort(8800),              // 端口
-    ws.WithMaxConnNum(10000),       // 最大连接数
-    ws.WithMsgSize(4096),           // 消息大小限制
-    ws.WithHeartbeatInterval(30),   // 心跳间隔（秒）
+    ws.WithServerAddr(":8800"),                      // 监听地址
+    ws.WithServerMaxConnNum(10000),                  // 最大连接数
+    ws.WithServerPath("/"),                          // 路径
+    ws.WithServerWriteTimeout(0),                    // 写入超时时间，默认0s（无超时）
+    ws.WithServerWriteQueueSize(1024),               // 写入队列大小，默认1024
+    ws.WithServerHeartbeatInterval(30*time.Second),  // 心跳间隔
+    ws.WithServerHeartbeatMechanism(ws.RespHeartbeat), // 心跳机制
 )
 ```
 
@@ -696,7 +759,7 @@ server := ws.NewServer(
 
 ```go
 locator := redis.NewLocator(
-    redis.WithAddr("127.0.0.1:6379"),
+    redis.WithAddrs("127.0.0.1:6379"),
     redis.WithPassword("password"),
     redis.WithDB(0),
 )
@@ -712,12 +775,14 @@ registry := consul.NewRegistry(
 )
 ```
 
-## 完整示例 (v2.5.2)
+## 完整示例 (v2.5.7)
 
 ```go
 package main
 
 import (
+    "time"
+
     "github.com/dobyte/due/locate/redis/v2"
     "github.com/dobyte/due/network/ws/v2"
     "github.com/dobyte/due/registry/consul/v2"
@@ -731,22 +796,23 @@ func main() {
 
     // WebSocket 服务器
     server := ws.NewServer(
-        ws.WithPort(8800),
-        ws.WithMaxConnNum(10000),
-        ws.WithMsgSize(4096),
-        ws.WithHeartbeatInterval(30),
+        ws.WithServerAddr(":8800"),
+        ws.WithServerMaxConnNum(10000),
+        ws.WithServerPath("/"),
+        ws.WithServerWriteTimeout(0),
+        ws.WithServerWriteQueueSize(1024),
+        ws.WithServerHeartbeatInterval(30*time.Second),
+        ws.WithServerHeartbeatMechanism(ws.RespHeartbeat),
     )
 
     // 定位器
     locator := redis.NewLocator(
-        redis.WithAddr("127.0.0.1:6379"),
+        redis.WithAddrs("127.0.0.1:6379"),
     )
 
     // 注册中心
     registry := consul.NewRegistry(
         consul.WithAddr("127.0.0.1:8500"),
-        consul.WithID("gate-001"),
-        consul.WithName("gate"),
     )
 
     // Gate 组件
@@ -756,6 +822,14 @@ func main() {
         gate.WithServer(server),
         gate.WithLocator(locator),
         gate.WithRegistry(registry),
+        // v2.5.7: 新增 RPC 配置选项
+        gate.WithConnNum(5),
+        gate.WithCallTimeout(3*time.Second),
+        gate.WithDialTimeout(3*time.Second),
+        gate.WithDialRetryTimes(3),
+        gate.WithWriteTimeout(0),
+        gate.WithWriteQueueSize(2048),
+        gate.WithFaultRecoveryTime(5*time.Second),
     )
 
     // 添加并启动
@@ -764,14 +838,15 @@ func main() {
 }
 ```
 
-## v2.5.2 变化说明
+## v2.5.7 变化说明
 
-**重要**: due v2.5.2 调整了组件使用方式：
+**重要**: due v2.5.7 相比 v2.5.2 的主要变化：
 
-1. **使用 Container 统一管理**：所有组件通过 `due.NewContainer()` 管理
-2. **Gate 作为组件**：使用 `gate.NewGate()` 创建组件，而非直接创建 ws.NewGate()
-3. **自动路由**：消息自动路由到 Node，无需手动 Match 函数
-4. **Session 管理**：通过 `ctx.Session()` 获取会话
+1. **增强的 RPC 配置**：Gate/Node/Mesh 新增了多个 RPC 配置选项，提供更精细的控制
+2. **Session disconnect 支持**：Push/Multicast/Broadcast/Publish 方法新增 disconnect 参数，支持推送后自动关闭连接
+3. **并发推送优化**：Multicast/Broadcast/Publish 使用 errgroup 并发处理，提升批量推送性能
+4. **HTTP 路由器增强**：支持多种风格的路由处理器，新增 All 方法
+5. **WebSocket 配置调整**：handshakeTimeout 改为 writeTimeout，新增 writeQueueSize
 
 ## 最佳实践
 
