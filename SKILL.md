@@ -9,6 +9,9 @@ description: |
   - Implementing Gate services (TCP/KCP/WebSocket) for client connections
   - Creating Node services with Actor model for stateful game logic
   - Setting up Mesh microservices for stateless business logic
+  - **Creating HTTP/REST API services** with due's HTTP component
+  - **Building web servers** with fiber-based routing and middleware
+  - **Implementing Swagger API documentation** for HTTP endpoints
   - Configuring service discovery (Consul/Etcd/Nacos)
   - Implementing event buses (Redis/NATS/Kafka/RabbitMQ)
   - Adding caching layers (Redis/Memcache)
@@ -22,6 +25,8 @@ description: |
   - Complete architecture guides with Gate → Node → Mesh patterns
   - Actor model implementation examples with Router handlers
   - Multi-protocol support (TCP/KCP/WebSocket)
+  - **HTTP/REST API development** with fiber-based routing and middleware
+  - **Swagger API documentation** integration
   - Production best practices for game servers
   - Common pitfall solutions (wrong imports, deprecated APIs)
   - Updated for due v2.5.7 API changes (enhanced RPC config, Session disconnect support, HTTP multi-style handlers)
@@ -69,6 +74,13 @@ trigger-keywords:
   - "EventBus"
   - "rpcx"
   - "grpc"
+  - "http.NewServer"
+  - "http.Server"
+  - "http.Context"
+  - "http.Handler"
+  - "fiber"
+  - "REST API"
+  - "Swagger"
 file-patterns:
   - "*.go"
 directories:
@@ -101,6 +113,8 @@ Invoke this skill when working with due:
 - **Creating game servers**: Gate services, Node services, or Mesh microservices
 - **Protocol implementation**: TCP, KCP, or WebSocket client connections
 - **Actor model**: Implementing stateful game logic with due Actor system
+- **HTTP/REST API development**: Building web servers, REST APIs, or HTTP microservices
+- **Swagger documentation**: Generating and serving API documentation
 - **Service discovery**: Consul, Etcd, or Nacos integration
 - **Event-driven architecture**: Redis, NATS, Kafka, or RabbitMQ event buses
 - **Caching strategies**: Redis or Memcache integration
@@ -169,7 +183,19 @@ This skill organizes due knowledge into focused modules. **Load specific guides 
 - **Crypto**: RSA and ECC encryption
 - **Transport**: gRPC and RPCX communication
 
-#### 6. Message Protocol
+#### 6. HTTP Service Patterns
+**File**: [references/http-patterns.md](references/http-patterns.md)
+**When to load**: Building HTTP/REST APIs, web servers, or HTTP microservices
+**Contains**:
+- HTTP server creation and configuration
+- Routing system with multiple handler styles (due/fiber/net/http/fasthttp)
+- Middleware implementation (global and route-level)
+- Request binding and response formatting
+- Swagger API documentation integration
+- CORS and TLS configuration
+- Microservice integration via Proxy
+
+#### 7. Message Protocol
 **File**: [references/protocol-patterns.md](references/protocol-patterns.md)
 **When to load**: Defining custom message formats, serialization
 **Contains**:
@@ -213,53 +239,13 @@ due/
 
 ## 🚀 Common Workflows
 
-These workflows guide you through typical due development tasks:
-
-### Creating a New Gate Service
-
-**Steps:**
-1. Create project directory structure
-2. Initialize go.mod with due dependency
-3. Create main.go with Gate configuration
-4. Implement protocol handler (TCP/KCP/WS)
-5. Define message routes and handlers
-6. Start server with docker-compose
-
-**Detailed guide**: [references/gate-patterns.md](references/gate-patterns.md)
-
-### Implementing Actor-Based Game Logic
-
-**Steps:**
-1. Define Actor type and state structure
-2. Implement Actor initialization
-3. Register message handlers
-4. Handle incoming messages in Actor loop
-5. Send messages between Actors
-6. Manage Actor lifecycle
-
-**Detailed guide**: [references/node-patterns.md](references/node-patterns.md#actor-implementation)
-
-### Setting Up Event-Driven Communication
-
-**Steps:**
-1. Choose EventBus backend (Redis/NATS/Kafka/RabbitMQ)
-2. Configure EventBus in service config
-3. Publish events from producers
-4. Subscribe to events in consumers
-5. Handle event serialization
-
-**Detailed guide**: [references/component-patterns.md](references/component-patterns.md#eventbus)
-
-### Configuring Service Discovery
-
-**Steps:**
-1. Choose registry backend (Consul/Etcd/Nacos)
-2. Configure registry in service config
-3. Register Gate and Node services
-4. Enable service discovery for inter-service calls
-5. Handle service health checks
-
-**Detailed guide**: [references/architecture-patterns.md](references/architecture-patterns.md#service-discovery)
+| Task | Guide |
+|------|-------|
+| Gate Service | [gate-patterns.md](references/gate-patterns.md) |
+| Actor Game Logic | [node-patterns.md](references/node-patterns.md) |
+| Event-Driven Communication | [component-patterns.md](references/component-patterns.md) |
+| Service Discovery | [architecture-patterns.md](references/architecture-patterns.md) |
+| HTTP/REST API | [http-patterns.md](references/http-patterns.md) |
 
 ## ⚡ Key Principles
 
@@ -274,6 +260,9 @@ When generating or reviewing due code, always apply these principles:
 - **Service registration**: Always register services with discovery system
 - **Error handling**: Use proper error wrapping and logging
 - **Session management**: Store client state in Session, not global variables
+- **HTTP best practices**: Use `ctx.Success()`/`ctx.Failure()` for consistent responses
+- **Request validation**: Always validate and bind request data before processing
+- **Middleware order**: Place global middleware (Logger, Recover, CORS) before custom ones
 
 ### ❌ Never Do
 
@@ -283,43 +272,21 @@ When generating or reviewing due code, always apply these principles:
 - Skip message validation in handlers
 - Block Actor message loops with long operations
 - Forget to handle connection close events
+- Return raw errors from HTTP handlers (use `ctx.Failure()` instead)
+- Skip CORS configuration for public APIs
+- Expose internal error details in production responses
 
-## 📖 Progressive Learning Path
+## 📖 Learning Path
 
-Follow this path based on your needs:
-
-### 🟢 New to due?
-
-1. **Start here**: [getting-started/README.md](getting-started/README.md)
-   Install due, understand architecture, run first example
-
-2. **Try examples**: Clone due repository and run docker-compose examples
-   See working Gate + Node setup with WebSocket
-
-### 🟡 Building game servers?
-
-1. **Review architecture**: [references/architecture-patterns.md](references/architecture-patterns.md)
-   Understand Gate/Node/Mesh roles and communication
-
-2. **Implement Actors**: [references/node-patterns.md](references/node-patterns.md)
-   Learn Actor model for stateful game logic
-
-3. **Add protocols**: [references/gate-patterns.md](references/gate-patterns.md)
-   Choose TCP/KCP/WebSocket based on game type
-
-### 🔵 Production deployment?
-
-1. **Review best practices**: [best-practices/overview.md](best-practices/overview.md)
-   Configuration, logging, monitoring, scaling
-
-2. **Check common issues**: [troubleshooting/common-issues.md](troubleshooting/common-issues.md)
-   Avoid typical mistakes and debugging tips
+- **New to due?** → [getting-started/README.md](getting-started/README.md)
+- **Building game servers?** → [architecture-patterns.md](references/architecture-patterns.md) → [node-patterns.md](references/node-patterns.md) → [gate-patterns.md](references/gate-patterns.md)
+- **HTTP/REST APIs?** → [http-patterns.md](references/http-patterns.md)
+- **Production deployment?** → [best-practices/overview.md](best-practices/overview.md) → [troubleshooting/common-issues.md](troubleshooting/common-issues.md)
 
 ## 🔗 Related Resources
 
-- **Official docs**: [https://github.com/dobyte/due](https://github.com/dobyte/due) - Source code and examples
-- **Go documentation**: Standard library references for concurrent programming
-- **Actor model**: Understanding Actor-based concurrency patterns
+- **Official docs**: [https://github.com/dobyte/due](https://github.com/dobyte/due)
+- **fiber documentation**: [https://docs.gofiber.io/](https://docs.gofiber.io/)
 
 ## 📝 Version Compatibility
 
@@ -339,6 +306,7 @@ go get -u github.com/dobyte/due/locate/redis/v2@latest
 go get -u github.com/dobyte/due/network/ws/v2@latest
 go get -u github.com/dobyte/due/registry/consul/v2@latest
 go get -u github.com/dobyte/due/transport/rpcx/v2@latest
+go get -u github.com/dobyte/due/component/http/v2@latest
 ```
 
 **Gate Server Example (v2.5.7):**
@@ -402,6 +370,81 @@ func main() {
 
 func initListen(proxy *node.Proxy) {
    proxy.Router().AddRouteHandler(routeID, isSync, handlerFunc)
+}
+```
+
+**HTTP Server Example (v2.5.7):**
+```go
+package main
+
+import (
+   "fmt"
+   "github.com/dobyte/due/component/http/v2"
+   "github.com/dobyte/due/v2"
+   "github.com/dobyte/due/v2/codes"
+   "github.com/dobyte/due/v2/log"
+   "github.com/dobyte/due/v2/utils/xtime"
+)
+
+func main() {
+   container := due.NewContainer()
+   component := http.NewServer(
+      http.WithName("api-server"),
+      http.WithAddr(":8080"),
+      http.WithConsole(true),
+      http.WithCorsOptions(http.CorsOptions{
+         Enable:       true,
+         AllowOrigins: []string{"*"},
+      }),
+      http.WithSwagOptions(http.SwagOptions{
+         Enable:   true,
+         Title:    "API文档",
+         BasePath: "/swagger",
+         FilePath: "./docs/swagger.json",
+      }),
+   )
+   initApp(component.Proxy())
+   container.Add(component)
+   container.Serve()
+}
+
+func initApp(proxy *http.Proxy) {
+   router := proxy.Router()
+
+   // API 路由组
+   api := router.Group("/api")
+   v1 := api.Group("/v1")
+   v1.Get("/greet", greetHandler)
+   v1.Post("/users", createUserHandler)
+}
+
+// @Summary 问候接口
+// @Tags 测试
+// @Param request body greetReq true "请求参数"
+// @Response 200 {object} http.Resp{Data=greetRes} "响应参数"
+// @Router /api/v1/greet [get]
+func greetHandler(ctx http.Context) error {
+   req := &greetReq{}
+   if err := ctx.Bind().JSON(req); err != nil {
+      return ctx.Failure(codes.InvalidArgument)
+   }
+   log.Info(req.Message)
+   return ctx.Success(&greetRes{
+      Message: fmt.Sprintf("当前时间: %s", xtime.Now().Format(xtime.DateTime)),
+   })
+}
+
+type greetReq struct {
+   Message string `json:"message"`
+}
+
+type greetRes struct {
+   Message string `json:"message"`
+}
+
+func createUserHandler(ctx http.Context) error {
+   // 处理创建用户逻辑
+   return ctx.Success(nil)
 }
 ```
 
