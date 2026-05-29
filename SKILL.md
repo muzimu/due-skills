@@ -12,6 +12,8 @@ description: |
   - **Creating HTTP/REST API services** with due's HTTP component
   - **Building web servers** with fiber-based routing and middleware
   - **Implementing Swagger API documentation** for HTTP endpoints
+  - **Building TCP/WebSocket clients** for connecting to game servers
+  - **Implementing client applications** with message routing and event handling
   - Configuring service discovery (Consul/Etcd/Nacos)
   - Implementing event buses (Redis/NATS/Kafka/RabbitMQ)
   - Adding caching layers (Redis/Memcache)
@@ -27,6 +29,7 @@ description: |
   - Multi-protocol support (TCP/KCP/WebSocket)
   - **HTTP/REST API development** with fiber-based routing and middleware
   - **Swagger API documentation** integration
+  - **TCP/WebSocket client development** with message routing and event handling
   - Production best practices for game servers
   - Common pitfall solutions (wrong imports, deprecated APIs)
   - Updated for due v2.5.7 API changes (enhanced RPC config, Session disconnect support, HTTP multi-style handlers)
@@ -81,6 +84,12 @@ trigger-keywords:
   - "fiber"
   - "REST API"
   - "Swagger"
+  - "tcp.NewClient"
+  - "ws.NewClient"
+  - "client.NewClient"
+  - "network.Client"
+  - "network.Conn"
+  - "cluster/client"
 file-patterns:
   - "*.go"
 directories:
@@ -115,6 +124,7 @@ Invoke this skill when working with due:
 - **Actor model**: Implementing stateful game logic with due Actor system
 - **HTTP/REST API development**: Building web servers, REST APIs, or HTTP microservices
 - **Swagger documentation**: Generating and serving API documentation
+- **Client development**: Building TCP/WebSocket clients for connecting to game servers
 - **Service discovery**: Consul, Etcd, or Nacos integration
 - **Event-driven architecture**: Redis, NATS, Kafka, or RabbitMQ event buses
 - **Caching strategies**: Redis or Memcache integration
@@ -195,7 +205,19 @@ This skill organizes due knowledge into focused modules. **Load specific guides 
 - CORS and TLS configuration
 - Microservice integration via Proxy
 
-#### 7. Message Protocol
+#### 7. Client Development Patterns
+**File**: [references/client-patterns.md](references/client-patterns.md)
+**When to load**: Building TCP/WebSocket clients, connecting to game servers
+**Contains**:
+- TCP client creation and configuration
+- WebSocket client creation and configuration
+- Cluster-level client with codec and encryption
+- Connection management and lifecycle
+- Message sending and receiving
+- Event handling and route dispatching
+- Heartbeat mechanism and reconnection
+
+#### 8. Message Protocol
 **File**: [references/protocol-patterns.md](references/protocol-patterns.md)
 **When to load**: Defining custom message formats, serialization
 **Contains**:
@@ -246,6 +268,7 @@ due/
 | Event-Driven Communication | [component-patterns.md](references/component-patterns.md) |
 | Service Discovery | [architecture-patterns.md](references/architecture-patterns.md) |
 | HTTP/REST API | [http-patterns.md](references/http-patterns.md) |
+| TCP/WebSocket Client | [client-patterns.md](references/client-patterns.md) |
 
 ## ⚡ Key Principles
 
@@ -263,6 +286,8 @@ When generating or reviewing due code, always apply these principles:
 - **HTTP best practices**: Use `ctx.Success()`/`ctx.Failure()` for consistent responses
 - **Request validation**: Always validate and bind request data before processing
 - **Middleware order**: Place global middleware (Logger, Recover, CORS) before custom ones
+- **Client protocol selection**: Use TCP for server-to-server, WebSocket for browser/mobile
+- **Connection lifecycle**: Always handle disconnect events and implement reconnection
 
 ### ❌ Never Do
 
@@ -275,6 +300,8 @@ When generating or reviewing due code, always apply these principles:
 - Return raw errors from HTTP handlers (use `ctx.Failure()` instead)
 - Skip CORS configuration for public APIs
 - Expose internal error details in production responses
+- Use `Send` for concurrent WebSocket writes (use `Push` instead)
+- Ignore heartbeat timeout in client connections
 
 ## 📖 Learning Path
 
@@ -378,12 +405,9 @@ func initListen(proxy *node.Proxy) {
 package main
 
 import (
-   "fmt"
    "github.com/dobyte/due/component/http/v2"
    "github.com/dobyte/due/v2"
    "github.com/dobyte/due/v2/codes"
-   "github.com/dobyte/due/v2/log"
-   "github.com/dobyte/due/v2/utils/xtime"
 )
 
 func main() {
@@ -392,16 +416,6 @@ func main() {
       http.WithName("api-server"),
       http.WithAddr(":8080"),
       http.WithConsole(true),
-      http.WithCorsOptions(http.CorsOptions{
-         Enable:       true,
-         AllowOrigins: []string{"*"},
-      }),
-      http.WithSwagOptions(http.SwagOptions{
-         Enable:   true,
-         Title:    "API文档",
-         BasePath: "/swagger",
-         FilePath: "./docs/swagger.json",
-      }),
    )
    initApp(component.Proxy())
    container.Add(component)
@@ -410,41 +424,51 @@ func main() {
 
 func initApp(proxy *http.Proxy) {
    router := proxy.Router()
-
-   // API 路由组
-   api := router.Group("/api")
-   v1 := api.Group("/v1")
-   v1.Get("/greet", greetHandler)
-   v1.Post("/users", createUserHandler)
-}
-
-// @Summary 问候接口
-// @Tags 测试
-// @Param request body greetReq true "请求参数"
-// @Response 200 {object} http.Resp{Data=greetRes} "响应参数"
-// @Router /api/v1/greet [get]
-func greetHandler(ctx http.Context) error {
-   req := &greetReq{}
-   if err := ctx.Bind().JSON(req); err != nil {
+   router.Get("/api/v1/greet", func(ctx http.Context) error {
+      return ctx.Success("Hello")
+   })
+   router.Post("/api/v1/users", func(ctx http.Context) error {
+      // 处理创建用户
       return ctx.Failure(codes.InvalidArgument)
-   }
-   log.Info(req.Message)
-   return ctx.Success(&greetRes{
-      Message: fmt.Sprintf("当前时间: %s", xtime.Now().Format(xtime.DateTime)),
    })
 }
+```
 
-type greetReq struct {
-   Message string `json:"message"`
+**Client Example (v2.5.7):**
+```go
+package main
+
+import (
+   "github.com/dobyte/due/cluster/client/v2"
+   "github.com/dobyte/due/cluster/v2"
+   "github.com/dobyte/due/encoding/json"
+   "github.com/dobyte/due/network/tcp/v2"  // 或 "github.com/dobyte/due/network/ws/v2"
+   "github.com/dobyte/due/v2"
+   "github.com/dobyte/due/v2/log"
+)
+
+func main() {
+   container := due.NewContainer()
+   c := client.NewClient(
+      client.WithName("my-client"),
+      client.WithCodec(json.NewCodec()),
+      client.WithClient(tcp.NewClient()),  // 或 ws.NewClient()
+   )
+   initApp(c.Proxy())
+   container.Add(c)
+   container.Serve()
 }
 
-type greetRes struct {
-   Message string `json:"message"`
-}
-
-func createUserHandler(ctx http.Context) error {
-   // 处理创建用户逻辑
-   return ctx.Success(nil)
+func initApp(proxy *client.Proxy) {
+   proxy.AddHookListener(cluster.Start, func(p *client.Proxy) {
+      conn, _ := p.Dial(client.WithDialAddr("127.0.0.1:3553"))
+      conn.Push(&cluster.Message{Route: 1, Data: "hello"})
+   })
+   proxy.AddRouteHandler(1, func(ctx *client.Context) {
+      var res string
+      ctx.Parse(&res)
+      log.Info("收到响应:", res)
+   })
 }
 ```
 
