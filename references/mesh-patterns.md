@@ -1,6 +1,6 @@
-# due Mesh 开发模式 (v2.5.7)
+# due Mesh 开发模式 (v2.5.8)
 
-本文档详细介绍 due v2.5.7 框架中 Mesh（微服务）的开发模式。
+本文档详细介绍 due v2.5.8 框架中 Mesh（微服务）的开发模式。
 
 ## Mesh 概述
 
@@ -19,7 +19,7 @@ Mesh 服务是 due 架构中的无状态微服务层，负责：
 | 协议 | TCP/KCP/WS | Actor 消息 | RPCX/gRPC |
 | 用途 | 连接管理 | 游戏逻辑 | 业务服务 |
 
-## 创建 Mesh 服务 (v2.5.7)
+## 创建 Mesh 服务 (v2.5.8)
 
 ### 基础 Mesh 服务
 
@@ -58,7 +58,7 @@ func main() {
         mesh.WithLocator(locator),
         mesh.WithRegistry(registry),
         mesh.WithTransporter(transporter),
-        // v2.5.7: 新增 RPC 配置选项
+        // v2.5.8: 新增 RPC 配置选项
         mesh.WithConnNum(5),
         mesh.WithCallTimeout(3*time.Second),
         mesh.WithDialTimeout(3*time.Second),
@@ -95,7 +95,7 @@ component := mesh.NewMesh(
     mesh.WithLocator(locator),
     mesh.WithRegistry(registry),
     mesh.WithTransporter(transporter),
-    // v2.5.7: 新增 RPC 配置选项
+    // v2.5.8: 新增 RPC 配置选项
     mesh.WithConnNum(5),
     mesh.WithCallTimeout(3*time.Second),
     mesh.WithDialTimeout(3*time.Second),
@@ -106,7 +106,7 @@ component := mesh.NewMesh(
 )
 ```
 
-## 服务间通信 (v2.5.7)
+## 服务间通信 (v2.5.8)
 
 ### Mesh 调用 Node
 
@@ -144,7 +144,7 @@ func callOtherMesh(proxy *proxy.Proxy, serviceName string, method string, req in
 }
 ```
 
-## 配置管理 (v2.5.7)
+## 配置管理 (v2.5.8)
 
 ```go
 type MeshConfig struct {
@@ -179,7 +179,7 @@ func main() {
         mesh.WithLocator(locator),
         mesh.WithRegistry(registry),
         mesh.WithTransporter(transporter),
-        // v2.5.7: 新增 RPC 配置选项
+        // v2.5.8: 新增 RPC 配置选项
         mesh.WithConnNum(5),
         mesh.WithCallTimeout(3*time.Second),
     )
@@ -224,7 +224,7 @@ func main() {
         mesh.WithLocator(locator),
         mesh.WithRegistry(registry),
         mesh.WithTransporter(transporter),
-        // v2.5.7: 新增 RPC 配置选项
+        // v2.5.8: 新增 RPC 配置选项
         mesh.WithConnNum(5),
         mesh.WithCallTimeout(3*time.Second),
     )
@@ -285,9 +285,9 @@ func (s *UserService) Login(ctx context.Context, req *LoginRequest, res *LoginRe
 }
 ```
 
-## v2.5.7 变化说明
+## v2.5.8 变化说明
 
-**重要**: due v2.5.7 相比 v2.5.2 的主要变化：
+**重要**: due v2.5.8 相比 v2.5.2 的主要变化：
 
 1. **增强的 RPC 配置**：Mesh 新增了多个 RPC 配置选项，提供更精细的控制
 2. **使用 Container 统一管理**：所有组件通过 `due.NewContainer()` 管理

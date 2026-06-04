@@ -1,12 +1,17 @@
-# due 快速开始指南 (v2.5.7)
+# due 快速开始指南 (v2.5.8)
 
-本指南帮助你快速开始使用 due v2.5.7 游戏服务器框架。
+本指南帮助你快速开始使用 due v2.5.8 游戏服务器框架。
 
 ## 版本说明
 
-**当前目标版本**: due v2.5.7
+**当前目标版本**: due v2.5.8
 
-**v2.5.7 更新内容**:
+**v2.5.8 更新内容（相比 v2.5.7）**:
+- **Etcd 认证**: Etcd 注册中心与配置中心新增 `WithUsername`/`WithPassword` 选项（etc.yaml 中对应 `username`/`password`），支持需鉴权的 etcd 集群
+- **Breaking**: Nacos 注册中心移除自动刷新选项 `WithRefreshInterval`（及 etc.yaml 中的 `refreshInterval`），改为依赖 watch 事件
+- 修复 Gate/Node 事件触发逻辑，正确处理 `context.Canceled`（无 API 变化）
+
+**v2.5.7 历史更新内容**:
 - 增强 RPC 配置选项（connNum、callTimeout、dialTimeout 等）
 - Session API: Push/Multicast/Broadcast/Publish 新增 disconnect 参数
 - 使用 errgroup 并发处理批量推送，提升性能
@@ -17,7 +22,7 @@
 - **Breaking**: Nacos 使用 `WithUrls` 替代 `WithAddr`
 - **Breaking**: 网络服务器选项统一使用 `Server` 前缀（如 `WithPort` → `WithServerAddr`）
 
-## 安装 due v2.5.7
+## 安装 due v2.5.8
 
 在你的 Go 项目中添加 due 依赖：
 
@@ -51,7 +56,7 @@ cd due
 docker-compose up -d
 ```
 
-## 创建第一个 Gate 服务 (v2.5.7)
+## 创建第一个 Gate 服务 (v2.5.8)
 
 Gate 服务负责管理客户端连接和消息路由：
 
@@ -94,7 +99,7 @@ func main() {
 }
 ```
 
-## 创建第一个 Node 服务 (v2.5.7)
+## 创建第一个 Node 服务 (v2.5.8)
 
 Node 服务使用 Actor 模型处理游戏逻辑：
 
@@ -264,7 +269,7 @@ func initListen(proxy *node.Proxy) {
 
 ## 项目结构
 
-一个典型的 due v2.5.7 项目结构：
+一个典型的 due v2.5.8 项目结构：
 
 ```
 my-game/

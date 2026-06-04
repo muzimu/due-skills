@@ -1,6 +1,6 @@
-# due 网关开发模式 (v2.5.7)
+# due 网关开发模式 (v2.5.8)
 
-本文档详细介绍 due v2.5.7 框架中 Gate（网关）服务的开发模式。
+本文档详细介绍 due v2.5.8 框架中 Gate（网关）服务的开发模式。
 
 ## Gate 概述
 
@@ -10,7 +10,7 @@ Gate 服务是客户端与游戏服务器之间的入口，负责：
 - 会话管理
 - 消息路由到 Node
 
-## v2.5.7 Gate 完整示例
+## v2.5.8 Gate 完整示例
 
 ```go
 package main
@@ -49,7 +49,7 @@ func main() {
         gate.WithServer(server),
         gate.WithLocator(locator),
         gate.WithRegistry(registry),
-        // v2.5.7: 新增 RPC 配置选项
+        // v2.5.8: 新增 RPC 配置选项
         gate.WithConnNum(5),                    // 内部RPC拨号连接数，默认5
         gate.WithCallTimeout(3*time.Second),    // 内部RPC调用超时时间，默认3s
         gate.WithDialTimeout(3*time.Second),    // 内部RPC拨号超时时间，默认3s
@@ -67,9 +67,9 @@ func main() {
 }
 ```
 
-## 协议支持 (v2.5.7)
+## 协议支持 (v2.5.8)
 
-due v2.5.7 支持三种主流协议：
+due v2.5.8 支持三种主流协议：
 
 ### WebSocket 协议
 
@@ -339,7 +339,7 @@ func main() {
 - **MMORPG**：推荐使用模式 2（流畅），节省带宽
 - **卡牌/回合制**：建议使用 WebSocket，KCP 优势不明显
 
-## 消息协议 (v2.5.2)
+## 消息协议 (v2.5.8)
 
 ### 默认数据包格式
 
@@ -365,11 +365,11 @@ func main() {
 └────────┴────────┴─────────┴──────────────┘
 ```
 
-## 会话管理 (v2.5.7)
+## 会话管理 (v2.5.8)
 
 ### 基础 Session 操作
 
-在 due v2.5.7 中，Session 由框架自动管理，通过 `ctx.Session()` 获取：
+在 due v2.5.8 中，Session 由框架自动管理，通过 `ctx.Session()` 获取：
 
 ```go
 func handler(ctx gate.Context) {
@@ -474,9 +474,9 @@ func notifyPlayer(session *gate.Session, uid int64) {
 }
 ```
 
-### v2.5.7 Session 新特性：disconnect 参数
+### v2.5.8 Session 新特性：disconnect 参数
 
-v2.5.7 的 Session API 新增了 `disconnect` 参数，支持推送消息后自动关闭连接：
+v2.5.8 的 Session API 新增了 `disconnect` 参数，支持推送消息后自动关闭连接：
 
 ```go
 // Push 推送消息（异步）
@@ -512,7 +512,7 @@ session.Multicast(gate.User, uids, true, kickMessage)
 session.Broadcast(gate.User, false, broadcastMessage)
 ```
 
-**性能优化：** v2.5.7 使用 `errgroup` 并发处理 Multicast/Broadcast/Publish，大幅提升批量推送性能。
+**性能优化：** v2.5.8 使用 `errgroup` 并发处理 Multicast/Broadcast/Publish，大幅提升批量推送性能。
 
 ### 玩家批量推送 (Broadcast)
 
@@ -530,7 +530,7 @@ func BroadcastToPlayers(session *gate.Session, uids []int64, message []byte) err
     return nil
 }
 
-// v2.5.7: 使用 Session 的 Multicast 方法（并发推送，性能更好）
+// v2.5.8: 使用 Session 的 Multicast 方法（并发推送，性能更好）
 func BroadcastToPlayersV2(session *gate.Session, uids []int64, message []byte) (int64, error) {
     return session.Multicast(gate.User, uids, false, message)
 }
@@ -709,9 +709,9 @@ func cleanupPlayerData(uid int64) {
 }
 ```
 
-## 消息路由 (v2.5.7)
+## 消息路由 (v2.5.8)
 
-在 due v2.5.7 中，Gate 自动处理消息路由到 Node，无需手动配置 Match 函数。
+在 due v2.5.8 中，Gate 自动处理消息路由到 Node，无需手动配置 Match 函数。
 
 消息自动根据 route 转发到对应的 Node Actor：
 
@@ -719,7 +719,7 @@ func cleanupPlayerData(uid int64) {
 Client → Gate(自动路由) → Node(Proxy.Router 处理)
 ```
 
-## 配置选项 (v2.5.7)
+## 配置选项 (v2.5.8)
 
 ### Gate 组件配置
 
@@ -730,7 +730,7 @@ component := gate.NewGate(
     gate.WithServer(server),        // 网络服务器
     gate.WithLocator(locator),      // 定位器
     gate.WithRegistry(registry),    // 注册中心
-    // v2.5.7: 新增 RPC 配置选项
+    // v2.5.8: 新增 RPC 配置选项
     gate.WithConnNum(5),                    // 内部RPC拨号连接数，默认5
     gate.WithCallTimeout(3*time.Second),    // 内部RPC调用超时时间，默认3s
     gate.WithDialTimeout(3*time.Second),    // 内部RPC拨号超时时间，默认3s
@@ -775,7 +775,7 @@ registry := consul.NewRegistry(
 )
 ```
 
-## 完整示例 (v2.5.7)
+## 完整示例 (v2.5.8)
 
 ```go
 package main
@@ -822,7 +822,7 @@ func main() {
         gate.WithServer(server),
         gate.WithLocator(locator),
         gate.WithRegistry(registry),
-        // v2.5.7: 新增 RPC 配置选项
+        // v2.5.8: 新增 RPC 配置选项
         gate.WithConnNum(5),
         gate.WithCallTimeout(3*time.Second),
         gate.WithDialTimeout(3*time.Second),
@@ -838,9 +838,9 @@ func main() {
 }
 ```
 
-## v2.5.7 变化说明
+## v2.5.8 变化说明
 
-**重要**: due v2.5.7 相比 v2.5.2 的主要变化：
+**重要**: due v2.5.8 相比 v2.5.2 的主要变化：
 
 1. **增强的 RPC 配置**：Gate/Node/Mesh 新增了多个 RPC 配置选项，提供更精细的控制
 2. **Session disconnect 支持**：Push/Multicast/Broadcast/Publish 方法新增 disconnect 参数，支持推送后自动关闭连接

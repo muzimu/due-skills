@@ -1,10 +1,10 @@
 ---
 name: due-skills
 description: |
-  Comprehensive knowledge base for due game server framework (v2.5.7).
+  Comprehensive knowledge base for due game server framework (v2.5.8).
 
   **Use this skill when:**
-  - Working with due framework (any version, especially v2.5.7)
+  - Working with due framework (any version, especially v2.5.8)
   - Building distributed game servers or real-time applications
   - Implementing Gate services (TCP/KCP/WebSocket) for client connections
   - Creating Node services with Actor model for stateful game logic
@@ -21,7 +21,7 @@ description: |
   - Using Container pattern to manage component lifecycle
   - Implementing player session management and binding
 
-  **Always consult this skill for due-related tasks** - it contains v2.5.7 specific API changes, correct module paths (github.com/dobyte/due/v2), and production-ready patterns that prevent common mistakes like using wrong package imports or outdated APIs.
+  **Always consult this skill for due-related tasks** - it contains v2.5.8 specific API changes, correct module paths (github.com/dobyte/due/v2), and production-ready patterns that prevent common mistakes like using wrong package imports or outdated APIs.
 
   **Features:**
   - Complete architecture guides with Gate → Node → Mesh patterns
@@ -32,7 +32,7 @@ description: |
   - **TCP/WebSocket client development** with message routing and event handling
   - Production best practices for game servers
   - Common pitfall solutions (wrong imports, deprecated APIs)
-  - Updated for due v2.5.7 API changes (enhanced RPC config, Session disconnect support, HTTP multi-style handlers)
+  - Updated for due v2.5.8 API changes (etcd username/password auth for registry & config-center, nacos auto-refresh option removed; carries forward v2.5.7 RPC config, Session disconnect, HTTP multi-style handlers)
 license: Apache-2.0
 allowed-tools:
   - Read
@@ -90,6 +90,9 @@ trigger-keywords:
   - "network.Client"
   - "network.Conn"
   - "cluster/client"
+  - "etcd.WithUsername"
+  - "etcd.WithPassword"
+  - "WithRefreshInterval"
 file-patterns:
   - "*.go"
 directories:
@@ -103,18 +106,23 @@ directories:
 
 # due Skills for AI Agents
 
-This skill provides comprehensive due game server framework knowledge (v2.5.7), optimized for AI agents helping developers build production-ready distributed game servers. due is a lightweight, high-performance distributed game server framework (Apache 2.0 license), featuring standardized development patterns and proven deployment in enterprise game projects.
+This skill provides comprehensive due game server framework knowledge (v2.5.8), optimized for AI agents helping developers build production-ready distributed game servers. due is a lightweight, high-performance distributed game server framework (Apache 2.0 license), featuring standardized development patterns and proven deployment in enterprise game projects.
 
-**v2.5.7 Key Changes:**
+**v2.5.8 Key Changes (relative to v2.5.7):**
+- **Etcd authentication**: Etcd registry and config-center now support `WithUsername`/`WithPassword` options (and `username`/`password` in etc.yaml) for authenticated etcd clusters
+- **Breaking**: Nacos registry removed the auto-refresh option `WithRefreshInterval` (and `refreshInterval` in etc.yaml) — registry now relies on watch events instead of polling
+- Bug fix: Gate/Node event triggering correctly handles `context.Canceled` to exit watch loops cleanly (no API change)
+- Registry watcher optimizations for Consul/Etcd/Nacos/Redis-locator (internal, no API change)
+
+**v2.5.7 Key Changes (carried forward):**
 - Enhanced RPC configuration options for Gate/Node/Mesh (connNum, callTimeout, dialTimeout, dialRetryTimes, writeTimeout, writeQueueSize, faultRecoveryTime)
-- Session API: Push/Multicast/Broadcast/Publish methods now support disconnect parameter for auto-closing connections after push
+- Session API: Push/Multicast/Broadcast/Publish methods support disconnect parameter for auto-closing connections after push
 - Session performance: Concurrent message pushing using errgroup for Multicast/Broadcast/Publish
 - HTTP Router: Added All method and support for multiple handler styles (due/fiber/express/net/http/fasthttp)
 - WebSocket: Replaced handshakeTimeout with writeTimeout, added writeQueueSize
 - **Breaking**: `WithAddr` renamed to `WithAddrs` for redis/etcd/kafka/memcache components (supports multiple addresses)
 - **Breaking**: NATS EventBus uses `WithUrl` instead of `WithAddr`
 - **Breaking**: Nacos uses `WithUrls` instead of `WithAddr`
-- Various bug fixes and performance optimizations
 
 ## 🎯 When to Use This Skill
 
@@ -317,15 +325,15 @@ When generating or reviewing due code, always apply these principles:
 
 ## 📝 Version Compatibility
 
-- **Target version**: due v2.5.7 (Apache 2.0 licensed)
+- **Target version**: due v2.5.8 (Apache 2.0 licensed)
 - **Go version**: Go 1.25.0 or later recommended
 - **Module path**: github.com/dobyte/due/v2
 - **Dependencies**: grpc, rpcx, redis, nats, kafka, rabbitmq drivers as needed
 
-## 🚀 Quick Start (v2.5.7)
+## 🚀 Quick Start (v2.5.8)
 
 ```bash
-# Get due v2.5.7
+# Get due v2.5.8
 go get -u github.com/dobyte/due/v2@latest
 
 # Get required components
@@ -336,7 +344,7 @@ go get -u github.com/dobyte/due/transport/rpcx/v2@latest
 go get -u github.com/dobyte/due/component/http/v2@latest
 ```
 
-**Gate Server Example (v2.5.7):**
+**Gate Server Example (v2.5.8):**
 ```go
 package main
 
@@ -357,7 +365,7 @@ func main() {
       gate.WithServer(server),
       gate.WithLocator(locator),
       gate.WithRegistry(registry),
-      // v2.5.7: 新增 RPC 配置选项
+      // v2.5.8: 新增 RPC 配置选项
       gate.WithCallTimeout(5*time.Second),
       gate.WithDialTimeout(3*time.Second),
       gate.WithWriteTimeout(0),
@@ -368,7 +376,7 @@ func main() {
 }
 ```
 
-**Node Server Example (v2.5.7):**
+**Node Server Example (v2.5.8):**
 ```go
 package main
 
@@ -386,7 +394,7 @@ func main() {
    component := node.NewNode(
       node.WithLocator(locator),
       node.WithRegistry(registry),
-      // v2.5.7: 新增 RPC 配置选项
+      // v2.5.8: 新增 RPC 配置选项
       node.WithConnNum(10),
       node.WithCallTimeout(5*time.Second),
    )
@@ -400,7 +408,7 @@ func initListen(proxy *node.Proxy) {
 }
 ```
 
-**HTTP Server Example (v2.5.7):**
+**HTTP Server Example (v2.5.8):**
 ```go
 package main
 
@@ -434,7 +442,7 @@ func initApp(proxy *http.Proxy) {
 }
 ```
 
-**Client Example (v2.5.7):**
+**Client Example (v2.5.8):**
 ```go
 package main
 

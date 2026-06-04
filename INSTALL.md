@@ -1,6 +1,6 @@
 # due-skills 安装指南
 
-due-skills 是一个专为 due 游戏服务器框架 (v2.5.2) 设计的 Claude Code 技能包。
+due-skills 是一个专为 due 游戏服务器框架 (v2.5.8) 设计的 Claude Code 技能包。
 
 ## 前置要求
 

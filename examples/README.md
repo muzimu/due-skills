@@ -1,6 +1,6 @@
-# due 示例代码 (v2.5.7)
+# due 示例代码 (v2.5.8)
 
-本目录包含 due v2.5.7 框架的完整可运行示例代码。
+本目录包含 due v2.5.8 框架的完整可运行示例代码。
 
 ## 目录结构
 
@@ -121,16 +121,25 @@ docker run -d --name redis -p 6379:6379 redis:latest
 docker run -d --name consul -p 8500:8500 consul:latest
 ```
 
-## v2.5.7 关键模式
+## v2.5.8 关键模式
 
 1. **Container 模式**: `due.NewContainer()` 统一管理组件
 2. **组件模式**: Gate/Node/Mesh 都作为组件创建
 3. **路由处理器**: Node 使用 `proxy.Router().AddRouteHandler()` 注册
 4. **模块路径**: 使用 `/v2` 路径导入
 
-## v2.5.7 Breaking Changes
+## v2.5.8 Breaking Changes
 
-升级时请注意以下破坏性变更：
+相比 v2.5.7 的破坏性 / 新增变更：
+
+| 组件 | 变更 | 说明 |
+|------|------|------|
+| Etcd Registry / Config | 新增 `WithUsername` / `WithPassword` | 支持需鉴权的 etcd 集群；etc.yaml 对应 `username`/`password` |
+| Nacos Registry | **移除** `WithRefreshInterval` | 不再轮询刷新，改为依赖 watch 事件；旧代码需删除该调用 |
+
+## v2.5.7 Breaking Changes（历史）
+
+从 v2.5.2 升级到 v2.5.7 时的破坏性变更：
 
 | 组件 | 旧 API | 新 API |
 |------|--------|--------|

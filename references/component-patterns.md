@@ -1,12 +1,12 @@
-# due 组件使用指南 (v2.5.7)
+# due 组件使用指南 (v2.5.8)
 
-本文档详细介绍 due v2.5.7 框架提供的核心组件使用方法。
+本文档详细介绍 due v2.5.8 框架提供的核心组件使用方法。
 
 ## 日志组件 (log/v2)
 
-due v2.5.7 支持多种日志驱动：Console、File、Aliyun、Tencent。
+due v2.5.8 支持多种日志驱动：Console、File、Aliyun、Tencent。
 
-### Console 日志 (v2.5.7)
+### Console 日志 (v2.5.8)
 
 ```go
 import "github.com/dobyte/due/v2/log"
@@ -21,7 +21,7 @@ log.Warn("警告信息")
 log.Error("错误信息", "error", err)
 ```
 
-### File 日志 (v2.5.7)
+### File 日志 (v2.5.8)
 
 ```go
 import (
@@ -43,7 +43,7 @@ driver := file.NewDriver(
 log.SetDriver(driver)
 ```
 
-### Aliyun 日志 (v2.5.7)
+### Aliyun 日志 (v2.5.8)
 
 ```go
 import (
@@ -62,7 +62,7 @@ driver := aliyun.NewDriver(
 log.SetDriver(driver)
 ```
 
-### Tencent 日志 (v2.5.7)
+### Tencent 日志 (v2.5.8)
 
 ```go
 import (
@@ -94,7 +94,7 @@ log.WithFields(log.Fields{
 
 due 支持多种配置中心：Consul、Etcd、Nacos，支持 JSON/YAML/TOML/XML 格式。
 
-### Consul 配置 (v2.5.7)
+### Consul 配置 (v2.5.8)
 
 ```go
 import (
@@ -122,7 +122,7 @@ port := cfg.Int("gate.port")
 host := cfg.Get("gate.host")
 ```
 
-### Etcd 配置 (v2.5.7)
+### Etcd 配置 (v2.5.8)
 
 ```go
 import (
@@ -132,13 +132,31 @@ import (
 source := etcd.NewSource(
     etcd.WithAddrs("127.0.0.1:2379"),
     etcd.WithPath("config/game"),
+    // v2.5.8 新增：etcd 认证（连接需鉴权的 etcd 集群时使用）
+    etcd.WithUsername("root"),
+    etcd.WithPassword("password"),
 )
 
 cfg := config.NewConfig(config.WithSource(source))
 cfg.Load()
 ```
 
-### Nacos 配置 (v2.5.7)
+**etc.yaml 配置（v2.5.8 新增 username/password）：**
+
+```yaml
+etc:
+  config:
+    etcd:
+      addrs: ["127.0.0.1:2379"]
+      dialTimeout: "5s"
+      path: "/config"
+      mode: "read-only"
+      # v2.5.8 新增
+      username: ""
+      password: ""
+```
+
+### Nacos 配置 (v2.5.8)
 
 ```go
 import (
@@ -185,7 +203,7 @@ cfg.Watch(func(key string, value interface{}) {
 
 due 支持 Redis 和 Memcache 缓存驱动。
 
-### Redis 缓存 (v2.5.7)
+### Redis 缓存 (v2.5.8)
 
 ```go
 import (
@@ -242,7 +260,7 @@ driver := memcache.NewDriver(
 )
 ```
 
-### 分布式锁 (v2.5.7)
+### 分布式锁 (v2.5.8)
 
 ```go
 import "github.com/dobyte/due/v2/lock"
@@ -264,7 +282,7 @@ defer lock.Release(context.Background())
 
 due 支持多种 EventBus 后端：Redis、NATS、Kafka、RabbitMQ。
 
-### Redis EventBus (v2.5.7)
+### Redis EventBus (v2.5.8)
 
 ```go
 import (
@@ -289,7 +307,7 @@ bus.Subscribe(context.Background(), "user.login", func(event *UserLoginEvent) {
 })
 ```
 
-### NATS EventBus (v2.5.7)
+### NATS EventBus (v2.5.8)
 
 ```go
 import (
@@ -305,7 +323,7 @@ bus.Publish(context.Background(), "user.login", eventData)
 bus.Subscribe(context.Background(), "user.login", handler)
 ```
 
-### Kafka EventBus (v2.5.7)
+### Kafka EventBus (v2.5.8)
 
 ```go
 import (
@@ -324,13 +342,13 @@ bus.Subscribe(context.Background(), "user.login", handler)
 
 ### RabbitMQ EventBus
 
-**注意**: due v2.5.7 不包含 RabbitMQ EventBus 实现。如需使用 RabbitMQ，请自行实现 EventBus 接口或使用第三方库。
+**注意**: due v2.5.8 不包含 RabbitMQ EventBus 实现。如需使用 RabbitMQ，请自行实现 EventBus 接口或使用第三方库。
 
 ## 服务注册 (registry/v2)
 
-due v2.5.7 支持 Consul、Etcd、Nacos 服务注册。
+due v2.5.8 支持 Consul、Etcd、Nacos 服务注册。
 
-### Consul Registry (v2.5.7)
+### Consul Registry (v2.5.8)
 
 ```go
 import (
@@ -351,7 +369,7 @@ component := gate.NewGate(
 )
 ```
 
-### Etcd Registry (v2.5.7)
+### Etcd Registry (v2.5.8)
 
 ```go
 import (
@@ -362,10 +380,30 @@ reg := etcd.NewRegistry(
     etcd.WithAddrs("127.0.0.1:2379"),
     etcd.WithID("node-001"),
     etcd.WithName("node"),
+    // v2.5.8 新增：etcd 认证（连接需鉴权的 etcd 集群时使用）
+    etcd.WithUsername("root"),
+    etcd.WithPassword("password"),
 )
 ```
 
-### Nacos Registry (v2.5.7)
+**etc.yaml 配置（v2.5.8 新增 username/password）：**
+
+```yaml
+etc:
+  registry:
+    etcd:
+      addrs: ["127.0.0.1:2379"]
+      dialTimeout: "5s"
+      namespace: "services"
+      timeout: "3s"
+      # v2.5.8 新增
+      username: ""
+      password: ""
+      retryTimes: 3
+      retryInterval: "10s"
+```
+
+### Nacos Registry (v2.5.8)
 
 ```go
 import (
@@ -377,6 +415,8 @@ reg := nacos.NewRegistry(
     nacos.WithNamespace("public"),
 )
 ```
+
+> ⚠️ **v2.5.8 Breaking Change**：Nacos Registry 移除了自动刷新选项 `WithRefreshInterval`（及 etc.yaml 中的 `refreshInterval`）。注册中心改为依赖 watch 事件感知服务实例变化，不再轮询刷新。若旧代码使用了 `nacos.WithRefreshInterval(...)`，需删除该调用。
 
 ### 服务发现
 
@@ -399,7 +439,7 @@ reg.Watch("gate", func(services []*registry.Service) {
 
 due 支持 RSA 和 ECC 加密。
 
-### RSA 加密 (v2.5.7)
+### RSA 加密 (v2.5.8)
 
 ```go
 import (
@@ -422,7 +462,7 @@ signature, err := rsa.Sign(privateKey, data)
 valid, err := rsa.Verify(publicKey, data, signature)
 ```
 
-### ECC 加密 (v2.5.7)
+### ECC 加密 (v2.5.8)
 
 ```go
 import (
@@ -441,9 +481,9 @@ plaintext, err := ecc.Decrypt(privateKey, ciphertext)
 
 ## 会话组件 (session)
 
-### Session 管理 (v2.5.7)
+### Session 管理 (v2.5.8)
 
-在 due v2.5.7 中，Session 通过 Context 获取：
+在 due v2.5.8 中，Session 通过 Context 获取：
 
 ```go
 func handler(ctx gate.Context) {
@@ -479,9 +519,9 @@ func onDisconnect(ctx gate.Context) {
 }
 ```
 
-### v2.5.7 Session 新特性：disconnect 参数
+### v2.5.8 Session 新特性：disconnect 参数
 
-v2.5.7 的 Session API 新增了 `disconnect` 参数，支持推送消息后自动关闭连接：
+v2.5.8 的 Session API 新增了 `disconnect` 参数，支持推送消息后自动关闭连接：
 
 ```go
 // Push 推送消息（异步）
@@ -498,11 +538,11 @@ session.Broadcast(gate.User, false, broadcastMessage)
 session.Publish("channel", false, channelMessage)
 ```
 
-**性能优化：** v2.5.7 使用 `errgroup` 并发处理 Multicast/Broadcast/Publish，大幅提升批量推送性能。
+**性能优化：** v2.5.8 使用 `errgroup` 并发处理 Multicast/Broadcast/Publish，大幅提升批量推送性能。
 
 ## 任务组件 (task)
 
-### 本地任务 (v2.5.7)
+### 本地任务 (v2.5.8)
 
 ```go
 import "github.com/dobyte/due/v2/task"
@@ -524,7 +564,7 @@ ticker := task.TickFunc(time.Second*10, func() {
 ticker.Stop()
 ```
 
-### 分布式任务 (v2.5.7)
+### 分布式任务 (v2.5.8)
 
 ```go
 import (

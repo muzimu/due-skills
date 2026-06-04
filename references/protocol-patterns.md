@@ -99,22 +99,22 @@ func (s *CustomSerializer) Unmarshal(data []byte, v interface{}) error {
 
 ## 协议配置
 
-### Gate 协议配置 (v2.5.7)
+### Gate 协议配置 (v2.5.8)
 
 ```go
-// v2.5.7 使用 Container 模式
+// v2.5.8 使用 Container 模式
 container := due.NewContainer()
 
 server := ws.NewServer(
     ws.WithSerializer(json.NewSerializer()),
-    // v2.5.7: 新增配置选项
+    // v2.5.8: 新增配置选项
     ws.WithServerWriteTimeout(0),
     ws.WithServerWriteQueueSize(1024),
 )
 
 component := gate.NewGate(
     gate.WithServer(server),
-    // v2.5.7: 新增 RPC 配置选项
+    // v2.5.8: 新增 RPC 配置选项
     gate.WithConnNum(5),
     gate.WithCallTimeout(3*time.Second),
 )
@@ -123,15 +123,15 @@ container.Add(component)
 container.Serve()
 ```
 
-### Node 协议配置 (v2.5.7)
+### Node 协议配置 (v2.5.8)
 
 ```go
-// v2.5.7 使用 Container 模式
+// v2.5.8 使用 Container 模式
 container := due.NewContainer()
 
 component := node.NewNode(
     node.WithSerializer(protobuf.NewSerializer()),
-    // v2.5.7: 新增 RPC 配置选项
+    // v2.5.8: 新增 RPC 配置选项
     node.WithConnNum(5),
     node.WithCallTimeout(3*time.Second),
 )
@@ -187,10 +187,10 @@ const (
 )
 ```
 
-### 路由匹配 (v2.5.7)
+### 路由匹配 (v2.5.8)
 
 ```go
-// v2.5.7 使用 Router().AddRouteHandler() 注册路由处理器
+// v2.5.8 使用 Router().AddRouteHandler() 注册路由处理器
 proxy := component.Proxy()
 
 proxy.Router().AddRouteHandler(RouteLogin, false, loginHandler)
@@ -270,23 +270,23 @@ func (d *CustomDecoder) Decode(conn net.Conn) ([]byte, error) {
 }
 ```
 
-### 使用自定义协议 (v2.5.7)
+### 使用自定义协议 (v2.5.8)
 
 ```go
-// v2.5.7 使用 Container 模式配置自定义协议
+// v2.5.8 使用 Container 模式配置自定义协议
 container := due.NewContainer()
 
 server := ws.NewServer(
     ws.WithEncoder(&CustomEncoder{}),
     ws.WithDecoder(&CustomDecoder{}),
-    // v2.5.7: 新增配置选项
+    // v2.5.8: 新增配置选项
     ws.WithServerWriteTimeout(0),
     ws.WithServerWriteQueueSize(1024),
 )
 
 component := gate.NewGate(
     gate.WithServer(server),
-    // v2.5.7: 新增 RPC 配置选项
+    // v2.5.8: 新增 RPC 配置选项
     gate.WithConnNum(5),
     gate.WithCallTimeout(3*time.Second),
 )
