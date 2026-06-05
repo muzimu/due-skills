@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/dobyte/due/locate/redis/v2"
 	"github.com/dobyte/due/network/kcp/v2"
 	"github.com/dobyte/due/registry/consul/v2"
@@ -18,11 +20,12 @@ func main() {
 		kcp.WithServerListenAddr(":10000"),
 		kcp.WithServerMaxConnNum(5000),
 		kcp.WithServerMtu(1400),
-		kcp.WithServerNoDelay(1, 10, 2, 1),
+		kcp.WithServerNoDelay([]int{1, 10, 2, 1}),
 		kcp.WithServerAckNoDelay(true),
-		kcp.WithServerWindowSize(128, 512),
+		kcp.WithServerWindowSize([]int{128, 512}),
 		kcp.WithServerReadBuffer(4194304),
 		kcp.WithServerWriteBuffer(4194304),
+		kcp.WithServerAuthorizeTimeout(30*time.Second), // 授权超时：30秒内未Bind则断开，0s表示不检测
 	)
 
 	// 创建定位器

@@ -1,7 +1,7 @@
 {
   "name": "@hzinfinity/due-skills",
   "version": "1.0.0",
-  "description": "Comprehensive knowledge base for due game server framework (v2.5.2) - A lightweight, high-performance distributed game server framework",
+  "description": "Comprehensive knowledge base for due game server framework (v2.5.8) - A lightweight, high-performance distributed game server framework",
   "main": "SKILL.md",
   "scripts": {
     "test": "echo \"No tests specified\" && exit 0",

@@ -4,23 +4,7 @@
 
 ## 版本说明
 
-**当前目标版本**: due v2.5.8
-
-**v2.5.8 更新内容（相比 v2.5.7）**:
-- **Etcd 认证**: Etcd 注册中心与配置中心新增 `WithUsername`/`WithPassword` 选项（etc.yaml 中对应 `username`/`password`），支持需鉴权的 etcd 集群
-- **Breaking**: Nacos 注册中心移除自动刷新选项 `WithRefreshInterval`（及 etc.yaml 中的 `refreshInterval`），改为依赖 watch 事件
-- 修复 Gate/Node 事件触发逻辑，正确处理 `context.Canceled`（无 API 变化）
-
-**v2.5.7 历史更新内容**:
-- 增强 RPC 配置选项（connNum、callTimeout、dialTimeout 等）
-- Session API: Push/Multicast/Broadcast/Publish 新增 disconnect 参数
-- 使用 errgroup 并发处理批量推送，提升性能
-- HTTP Router 新增 All 方法，支持多种处理器风格
-- WebSocket: handshakeTimeout 改为 writeTimeout，新增 writeQueueSize
-- **Breaking**: `WithAddr` 重命名为 `WithAddrs`（redis/etcd/kafka/memcache）
-- **Breaking**: NATS EventBus 使用 `WithUrl` 替代 `WithAddr`
-- **Breaking**: Nacos 使用 `WithUrls` 替代 `WithAddr`
-- **Breaking**: 网络服务器选项统一使用 `Server` 前缀（如 `WithPort` → `WithServerAddr`）
+**当前目标版本**: due v2.5.8（模块路径 `github.com/dobyte/due/v2`）
 
 ## 安装 due v2.5.8
 

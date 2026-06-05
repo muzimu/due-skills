@@ -46,8 +46,8 @@ github.com/dobyte/due/network/ws/v2 v2.0.0-20260519025642-395171390204 h1:ggM6VE
 github.com/dobyte/due/network/ws/v2 v2.0.0-20260519025642-395171390204/go.mod h1:66OZejx9p0ofqcRVWTm46EOLISX0DRRmiFM1LBI7pRE=
 github.com/dobyte/due/registry/consul/v2 v2.0.0-20260519025642-395171390204 h1:7mGtAmmgK0zY2mpPpzctRIU9Ov57lG8mgixM5Fw0e00=
 github.com/dobyte/due/registry/consul/v2 v2.0.0-20260519025642-395171390204/go.mod h1:5OMbm012zQ7kVvLqHA7p+o661k2/cGRRcF9odY1icrU=
-github.com/dobyte/due/v2 v2.5.7 h1:+6S5yEkFoUaAuHr10Am0/8sPW9kkPh4tcm+FEC0LYIg=
-github.com/dobyte/due/v2 v2.5.7/go.mod h1:P6T6x6gDR2bFe8Sd5W4KzWq2GBHoHZq/DIFY/u9Ub94=
+github.com/dobyte/due/v2 v2.5.8 h1:8+3PfDhLTljm5NR41dHST5YwvGIHNjk7Ah9vD+J37R8=
+github.com/dobyte/due/v2 v2.5.8/go.mod h1:P6T6x6gDR2bFe8Sd5W4KzWq2GBHoHZq/DIFY/u9Ub94=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fatih/color v1.9.0/go.mod h1:eQcE1qtQxscV5RaZvpXrrb8Drkc3/DdQ+uUYCNjL+zU=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=

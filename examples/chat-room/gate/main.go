@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/dobyte/due/locate/redis/v2"
 	"github.com/dobyte/due/network/ws/v2"
 	"github.com/dobyte/due/registry/consul/v2"
@@ -15,6 +17,7 @@ func main() {
 	server := ws.NewServer(
 		ws.WithServerAddr(":8800"),
 		ws.WithServerMaxConnNum(10000),
+		ws.WithServerAuthorizeTimeout(30*time.Second), // 授权超时：30秒内未Bind则断开
 	)
 
 	locator := redis.NewLocator(

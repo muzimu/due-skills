@@ -128,25 +128,9 @@ docker run -d --name consul -p 8500:8500 consul:latest
 3. **路由处理器**: Node 使用 `proxy.Router().AddRouteHandler()` 注册
 4. **模块路径**: 使用 `/v2` 路径导入
 
-## v2.5.8 Breaking Changes
+## v2.5.8 API Notes
 
-相比 v2.5.7 的破坏性 / 新增变更：
-
-| 组件 | 变更 | 说明 |
-|------|------|------|
-| Etcd Registry / Config | 新增 `WithUsername` / `WithPassword` | 支持需鉴权的 etcd 集群；etc.yaml 对应 `username`/`password` |
-| Nacos Registry | **移除** `WithRefreshInterval` | 不再轮询刷新，改为依赖 watch 事件；旧代码需删除该调用 |
-
-## v2.5.7 Breaking Changes（历史）
-
-从 v2.5.2 升级到 v2.5.7 时的破坏性变更：
-
-| 组件 | 旧 API | 新 API |
-|------|--------|--------|
-| redis/etcd/kafka/memcache | `WithAddr` | `WithAddrs` |
-| NATS EventBus | `WithAddr` | `WithUrl` |
-| Nacos | `WithAddr` | `WithUrls` |
-| TCP 服务器 | `WithPort` / `WithMaxConnNum` | `WithServerAddr` / `WithServerMaxConnNum` |
-| WebSocket 服务器 | `WithPort` / `WithMaxConnNum` | `WithServerAddr` / `WithServerMaxConnNum` |
-| KCP 服务器 | `WithPort` / `WithMode` | `WithServerListenAddr` |
-| Session.Push | `Push(kind, target, msg)` | `Push(kind, target, disconnect, msg)` |
+- Etcd Registry/Config 支持 `WithUsername`/`WithPassword` 选项（etc.yaml 对应 `username`/`password`）
+- Nacos Registry 通过 watch 事件感知服务实例变化，无需配置轮询刷新
+- 多地址组件使用 `WithAddrs`（redis/etcd/kafka/memcache）；NATS 使用 `WithUrl`；Nacos 使用 `WithUrls`
+- Session.Push/Multicast/Broadcast/Publish 方法支持 disconnect 参数（推送后自动关闭连接）

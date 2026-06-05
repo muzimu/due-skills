@@ -1,6 +1,6 @@
 # due 网关开发模式 (v2.5.8)
 
-本文档详细介绍 due v2.5.8 框架中 Gate（网关）服务的开发模式。
+本文档详细介绍 due 框架中 Gate（网关）服务的开发模式。
 
 ## Gate 概述
 
@@ -49,7 +49,6 @@ func main() {
         gate.WithServer(server),
         gate.WithLocator(locator),
         gate.WithRegistry(registry),
-        // v2.5.8: 新增 RPC 配置选项
         gate.WithConnNum(5),                    // 内部RPC拨号连接数，默认5
         gate.WithCallTimeout(3*time.Second),    // 内部RPC调用超时时间，默认3s
         gate.WithDialTimeout(3*time.Second),    // 内部RPC拨号超时时间，默认3s
@@ -69,7 +68,7 @@ func main() {
 
 ## 协议支持 (v2.5.8)
 
-due v2.5.8 支持三种主流协议：
+due 支持三种主流协议：
 
 ### WebSocket 协议
 
@@ -161,6 +160,7 @@ server := tcp.NewServer(
     tcp.WithServerWriteQueueSize(1024),         // 写入队列大小，默认512
     tcp.WithServerHeartbeatInterval(30*time.Second), // 心跳间隔
     tcp.WithServerHeartbeatMechanism(tcp.RespHeartbeat), // 心跳机制
+    tcp.WithServerAuthorizeTimeout(30*time.Second), // 授权超时：客户端连接后需在指定时间内Bind，否则断开，0s不检测
 )
 ```
 
@@ -191,6 +191,7 @@ func main() {
         tcp.WithServerWriteQueueSize(2048),
         tcp.WithServerHeartbeatInterval(60*time.Second),
         tcp.WithServerHeartbeatMechanism(tcp.RespHeartbeat),
+        tcp.WithServerAuthorizeTimeout(30*time.Second),
     )
 
     // 定位器
@@ -261,11 +262,12 @@ server := kcp.NewServer(
     kcp.WithServerListenAddr(":10000"),     // 监听地址
     kcp.WithServerMaxConnNum(5000),         // 最大连接数
     kcp.WithServerMtu(1400),                // 最大传输单元
-    kcp.WithServerNoDelay(1, 10, 2, 1),     // 无延迟配置
+    kcp.WithServerNoDelay([]int{1, 10, 2, 1}),     // 无延迟配置
     kcp.WithServerAckNoDelay(true),         // ACK 无延迟
-    kcp.WithServerWindowSize(128, 512),     // 窗口大小
+    kcp.WithServerWindowSize([]int{128, 512}),     // 窗口大小
     kcp.WithServerReadBuffer(4194304),      // 读取缓冲区大小
     kcp.WithServerWriteBuffer(4194304),     // 写入缓冲区大小
+    kcp.WithServerAuthorizeTimeout(30*time.Second), // 授权超时：客户端连接后需在指定时间内Bind，否则断开，0s不检测
 )
 ```
 
@@ -299,9 +301,9 @@ func main() {
         kcp.WithServerListenAddr(":10000"),
         kcp.WithServerMaxConnNum(5000),
         kcp.WithServerMtu(1400),
-        kcp.WithServerNoDelay(1, 10, 2, 1),
+        kcp.WithServerNoDelay([]int{1, 10, 2, 1}),
         kcp.WithServerAckNoDelay(true),
-        kcp.WithServerWindowSize(128, 512),
+        kcp.WithServerWindowSize([]int{128, 512}),
         kcp.WithServerReadBuffer(4194304),
         kcp.WithServerWriteBuffer(4194304),
     )
@@ -369,7 +371,7 @@ func main() {
 
 ### 基础 Session 操作
 
-在 due v2.5.8 中，Session 由框架自动管理，通过 `ctx.Session()` 获取：
+在 due 中，Session 由框架自动管理，通过 `ctx.Session()` 获取：
 
 ```go
 func handler(ctx gate.Context) {
@@ -474,9 +476,9 @@ func notifyPlayer(session *gate.Session, uid int64) {
 }
 ```
 
-### v2.5.8 Session 新特性：disconnect 参数
+### Session disconnect 参数
 
-v2.5.8 的 Session API 新增了 `disconnect` 参数，支持推送消息后自动关闭连接：
+Session API 提供了 `disconnect` 参数，支持推送消息后自动关闭连接：
 
 ```go
 // Push 推送消息（异步）
@@ -512,7 +514,7 @@ session.Multicast(gate.User, uids, true, kickMessage)
 session.Broadcast(gate.User, false, broadcastMessage)
 ```
 
-**性能优化：** v2.5.8 使用 `errgroup` 并发处理 Multicast/Broadcast/Publish，大幅提升批量推送性能。
+**性能优化：** Multicast/Broadcast/Publish 使用 `errgroup` 并发处理 Multicast/Broadcast/Publish，大幅提升批量推送性能。
 
 ### 玩家批量推送 (Broadcast)
 
@@ -530,7 +532,7 @@ func BroadcastToPlayers(session *gate.Session, uids []int64, message []byte) err
     return nil
 }
 
-// v2.5.8: 使用 Session 的 Multicast 方法（并发推送，性能更好）
+// Session Multicast 并发推送
 func BroadcastToPlayersV2(session *gate.Session, uids []int64, message []byte) (int64, error) {
     return session.Multicast(gate.User, uids, false, message)
 }
@@ -711,7 +713,7 @@ func cleanupPlayerData(uid int64) {
 
 ## 消息路由 (v2.5.8)
 
-在 due v2.5.8 中，Gate 自动处理消息路由到 Node，无需手动配置 Match 函数。
+在 due 中，Gate 自动处理消息路由到 Node，无需手动配置 Match 函数。
 
 消息自动根据 route 转发到对应的 Node Actor：
 
@@ -730,7 +732,6 @@ component := gate.NewGate(
     gate.WithServer(server),        // 网络服务器
     gate.WithLocator(locator),      // 定位器
     gate.WithRegistry(registry),    // 注册中心
-    // v2.5.8: 新增 RPC 配置选项
     gate.WithConnNum(5),                    // 内部RPC拨号连接数，默认5
     gate.WithCallTimeout(3*time.Second),    // 内部RPC调用超时时间，默认3s
     gate.WithDialTimeout(3*time.Second),    // 内部RPC拨号超时时间，默认3s
@@ -752,6 +753,7 @@ server := ws.NewServer(
     ws.WithServerWriteQueueSize(1024),               // 写入队列大小，默认1024
     ws.WithServerHeartbeatInterval(30*time.Second),  // 心跳间隔
     ws.WithServerHeartbeatMechanism(ws.RespHeartbeat), // 心跳机制
+    ws.WithServerAuthorizeTimeout(30*time.Second), // 授权超时：客户端连接后需在指定时间内Bind，否则断开，0s不检测
 )
 ```
 
@@ -822,7 +824,6 @@ func main() {
         gate.WithServer(server),
         gate.WithLocator(locator),
         gate.WithRegistry(registry),
-        // v2.5.8: 新增 RPC 配置选项
         gate.WithConnNum(5),
         gate.WithCallTimeout(3*time.Second),
         gate.WithDialTimeout(3*time.Second),
@@ -837,16 +838,6 @@ func main() {
     container.Serve()
 }
 ```
-
-## v2.5.8 变化说明
-
-**重要**: due v2.5.8 相比 v2.5.2 的主要变化：
-
-1. **增强的 RPC 配置**：Gate/Node/Mesh 新增了多个 RPC 配置选项，提供更精细的控制
-2. **Session disconnect 支持**：Push/Multicast/Broadcast/Publish 方法新增 disconnect 参数，支持推送后自动关闭连接
-3. **并发推送优化**：Multicast/Broadcast/Publish 使用 errgroup 并发处理，提升批量推送性能
-4. **HTTP 路由器增强**：支持多种风格的路由处理器，新增 All 方法
-5. **WebSocket 配置调整**：handshakeTimeout 改为 writeTimeout，新增 writeQueueSize
 
 ## 最佳实践
 

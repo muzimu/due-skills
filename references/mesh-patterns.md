@@ -1,6 +1,6 @@
 # due Mesh 开发模式 (v2.5.8)
 
-本文档详细介绍 due v2.5.8 框架中 Mesh（微服务）的开发模式。
+本文档详细介绍 due 框架中 Mesh（微服务）的开发模式。
 
 ## Mesh 概述
 
@@ -58,7 +58,6 @@ func main() {
         mesh.WithLocator(locator),
         mesh.WithRegistry(registry),
         mesh.WithTransporter(transporter),
-        // v2.5.8: 新增 RPC 配置选项
         mesh.WithConnNum(5),
         mesh.WithCallTimeout(3*time.Second),
         mesh.WithDialTimeout(3*time.Second),
@@ -95,7 +94,6 @@ component := mesh.NewMesh(
     mesh.WithLocator(locator),
     mesh.WithRegistry(registry),
     mesh.WithTransporter(transporter),
-    // v2.5.8: 新增 RPC 配置选项
     mesh.WithConnNum(5),
     mesh.WithCallTimeout(3*time.Second),
     mesh.WithDialTimeout(3*time.Second),
@@ -179,7 +177,6 @@ func main() {
         mesh.WithLocator(locator),
         mesh.WithRegistry(registry),
         mesh.WithTransporter(transporter),
-        // v2.5.8: 新增 RPC 配置选项
         mesh.WithConnNum(5),
         mesh.WithCallTimeout(3*time.Second),
     )
@@ -224,7 +221,6 @@ func main() {
         mesh.WithLocator(locator),
         mesh.WithRegistry(registry),
         mesh.WithTransporter(transporter),
-        // v2.5.8: 新增 RPC 配置选项
         mesh.WithConnNum(5),
         mesh.WithCallTimeout(3*time.Second),
     )
@@ -284,16 +280,6 @@ func (s *UserService) Login(ctx context.Context, req *LoginRequest, res *LoginRe
     return nil
 }
 ```
-
-## v2.5.8 变化说明
-
-**重要**: due v2.5.8 相比 v2.5.2 的主要变化：
-
-1. **增强的 RPC 配置**：Mesh 新增了多个 RPC 配置选项，提供更精细的控制
-2. **使用 Container 统一管理**：所有组件通过 `due.NewContainer()` 管理
-3. **Mesh 作为组件**：使用 `mesh.NewMesh()` 创建组件
-4. **服务提供者注册**：使用 `AddServiceProvider()` 注册服务
-5. **RPCX 传输**：默认使用 RPCX 作为传输协议
 
 ## 最佳实践
 

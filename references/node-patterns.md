@@ -1,6 +1,6 @@
 # due Node 开发模式 (v2.5.8)
 
-本文档详细介绍 due v2.5.8 框架中 Node 服务的开发模式，重点介绍 Actor 模型的使用。
+本文档详细介绍 due 框架中 Node 服务的开发模式，重点介绍 Actor 模型的使用。
 
 ## Node 概述
 
@@ -48,7 +48,6 @@ func main() {
         node.WithName("node"),
         node.WithLocator(locator),
         node.WithRegistry(registry),
-        // v2.5.8: 新增 RPC 配置选项
         node.WithConnNum(5),                    // 内部RPC拨号连接数，默认5
         node.WithCallTimeout(3*time.Second),    // 内部RPC调用超时时间，默认3s
         node.WithDialTimeout(3*time.Second),    // 内部RPC拨号超时时间，默认3s
@@ -122,7 +121,7 @@ Actor 是并发编程的基本单元，具有以下特性：
 
 ## 路由处理器 (v2.5.8)
 
-在 due v2.5.8 中，Actor 逻辑通过路由处理器实现：
+在 due 中，Actor 逻辑通过路由处理器实现：
 
 ### 基础路由处理器
 
@@ -245,7 +244,6 @@ component := node.NewNode(
     node.WithLocator(locator),
     node.WithRegistry(registry),
     node.WithWorkerSize(32),         // Worker 数量
-    // v2.5.8: 新增 RPC 配置选项
     node.WithConnNum(5),                    // 内部RPC拨号连接数，默认5
     node.WithCallTimeout(3*time.Second),    // 内部RPC调用超时时间，默认3s
     node.WithDialTimeout(3*time.Second),    // 内部RPC拨号超时时间，默认3s
@@ -310,7 +308,7 @@ func broadcastMessage(uids []int64, route int64, data interface{}) {
 ```go
 // 通过 Proxy 推送消息
 func pushMessage(proxy *node.Proxy, uid int64, route int64, data interface{}) {
-    // v2.5.8: 使用 Session API 推送消息
+    // 使用 Session API 推送消息
     // 需要先获取 Session，然后使用 Session.Push
     session := proxy.Session()
     session.Push(gate.User, uid, false, data)

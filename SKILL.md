@@ -32,7 +32,7 @@ description: |
   - **TCP/WebSocket client development** with message routing and event handling
   - Production best practices for game servers
   - Common pitfall solutions (wrong imports, deprecated APIs)
-  - Updated for due v2.5.8 API changes (etcd username/password auth for registry & config-center, nacos auto-refresh option removed; carries forward v2.5.7 RPC config, Session disconnect, HTTP multi-style handlers)
+  - Built for due v2.5.8 APIs (etcd username/password auth for registry & config-center, fine-grained RPC config, Session disconnect support, HTTP multi-style handlers)
 license: Apache-2.0
 allowed-tools:
   - Read
@@ -108,21 +108,12 @@ directories:
 
 This skill provides comprehensive due game server framework knowledge (v2.5.8), optimized for AI agents helping developers build production-ready distributed game servers. due is a lightweight, high-performance distributed game server framework (Apache 2.0 license), featuring standardized development patterns and proven deployment in enterprise game projects.
 
-**v2.5.8 Key Changes (relative to v2.5.7):**
-- **Etcd authentication**: Etcd registry and config-center now support `WithUsername`/`WithPassword` options (and `username`/`password` in etc.yaml) for authenticated etcd clusters
-- **Breaking**: Nacos registry removed the auto-refresh option `WithRefreshInterval` (and `refreshInterval` in etc.yaml) — registry now relies on watch events instead of polling
-- Bug fix: Gate/Node event triggering correctly handles `context.Canceled` to exit watch loops cleanly (no API change)
-- Registry watcher optimizations for Consul/Etcd/Nacos/Redis-locator (internal, no API change)
-
-**v2.5.7 Key Changes (carried forward):**
-- Enhanced RPC configuration options for Gate/Node/Mesh (connNum, callTimeout, dialTimeout, dialRetryTimes, writeTimeout, writeQueueSize, faultRecoveryTime)
-- Session API: Push/Multicast/Broadcast/Publish methods support disconnect parameter for auto-closing connections after push
-- Session performance: Concurrent message pushing using errgroup for Multicast/Broadcast/Publish
-- HTTP Router: Added All method and support for multiple handler styles (due/fiber/express/net/http/fasthttp)
-- WebSocket: Replaced handshakeTimeout with writeTimeout, added writeQueueSize
-- **Breaking**: `WithAddr` renamed to `WithAddrs` for redis/etcd/kafka/memcache components (supports multiple addresses)
-- **Breaking**: NATS EventBus uses `WithUrl` instead of `WithAddr`
-- **Breaking**: Nacos uses `WithUrls` instead of `WithAddr`
+**v2.5.8 Core Capabilities:**
+- Fine-grained RPC configuration for Gate/Node/Mesh (connNum, callTimeout, dialTimeout, dialRetryTimes, writeTimeout, writeQueueSize, faultRecoveryTime)
+- Session API: Push/Multicast/Broadcast/Publish support a disconnect parameter for auto-closing connections after push; concurrent batch pushing via errgroup
+- HTTP Router: All method plus multiple handler styles (due/fiber/express/net/http/fasthttp)
+- Multi-address components use `WithAddrs` (redis/etcd/kafka/memcache); NATS uses `WithUrl`; Nacos uses `WithUrls`
+- Etcd registry and config-center support `WithUsername`/`WithPassword` (and `username`/`password` in etc.yaml) for authenticated clusters
 
 ## 🎯 When to Use This Skill
 
@@ -365,7 +356,6 @@ func main() {
       gate.WithServer(server),
       gate.WithLocator(locator),
       gate.WithRegistry(registry),
-      // v2.5.8: 新增 RPC 配置选项
       gate.WithCallTimeout(5*time.Second),
       gate.WithDialTimeout(3*time.Second),
       gate.WithWriteTimeout(0),
@@ -394,7 +384,6 @@ func main() {
    component := node.NewNode(
       node.WithLocator(locator),
       node.WithRegistry(registry),
-      // v2.5.8: 新增 RPC 配置选项
       node.WithConnNum(10),
       node.WithCallTimeout(5*time.Second),
    )

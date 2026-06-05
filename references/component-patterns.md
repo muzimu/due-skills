@@ -1,10 +1,10 @@
 # due 组件使用指南 (v2.5.8)
 
-本文档详细介绍 due v2.5.8 框架提供的核心组件使用方法。
+本文档详细介绍 due 框架提供的核心组件使用方法。
 
 ## 日志组件 (log/v2)
 
-due v2.5.8 支持多种日志驱动：Console、File、Aliyun、Tencent。
+due 支持多种日志驱动：Console、File、Aliyun、Tencent。
 
 ### Console 日志 (v2.5.8)
 
@@ -132,7 +132,6 @@ import (
 source := etcd.NewSource(
     etcd.WithAddrs("127.0.0.1:2379"),
     etcd.WithPath("config/game"),
-    // v2.5.8 新增：etcd 认证（连接需鉴权的 etcd 集群时使用）
     etcd.WithUsername("root"),
     etcd.WithPassword("password"),
 )
@@ -141,7 +140,7 @@ cfg := config.NewConfig(config.WithSource(source))
 cfg.Load()
 ```
 
-**etc.yaml 配置（v2.5.8 新增 username/password）：**
+**etc.yaml 配置：**
 
 ```yaml
 etc:
@@ -151,7 +150,7 @@ etc:
       dialTimeout: "5s"
       path: "/config"
       mode: "read-only"
-      # v2.5.8 新增
+      
       username: ""
       password: ""
 ```
@@ -342,11 +341,11 @@ bus.Subscribe(context.Background(), "user.login", handler)
 
 ### RabbitMQ EventBus
 
-**注意**: due v2.5.8 不包含 RabbitMQ EventBus 实现。如需使用 RabbitMQ，请自行实现 EventBus 接口或使用第三方库。
+**注意**: due 不包含 RabbitMQ EventBus 实现。如需使用 RabbitMQ，请自行实现 EventBus 接口或使用第三方库。
 
 ## 服务注册 (registry/v2)
 
-due v2.5.8 支持 Consul、Etcd、Nacos 服务注册。
+due 支持 Consul、Etcd、Nacos 服务注册。
 
 ### Consul Registry (v2.5.8)
 
@@ -380,13 +379,12 @@ reg := etcd.NewRegistry(
     etcd.WithAddrs("127.0.0.1:2379"),
     etcd.WithID("node-001"),
     etcd.WithName("node"),
-    // v2.5.8 新增：etcd 认证（连接需鉴权的 etcd 集群时使用）
     etcd.WithUsername("root"),
     etcd.WithPassword("password"),
 )
 ```
 
-**etc.yaml 配置（v2.5.8 新增 username/password）：**
+**etc.yaml 配置：**
 
 ```yaml
 etc:
@@ -396,7 +394,7 @@ etc:
       dialTimeout: "5s"
       namespace: "services"
       timeout: "3s"
-      # v2.5.8 新增
+      
       username: ""
       password: ""
       retryTimes: 3
@@ -416,7 +414,7 @@ reg := nacos.NewRegistry(
 )
 ```
 
-> ⚠️ **v2.5.8 Breaking Change**：Nacos Registry 移除了自动刷新选项 `WithRefreshInterval`（及 etc.yaml 中的 `refreshInterval`）。注册中心改为依赖 watch 事件感知服务实例变化，不再轮询刷新。若旧代码使用了 `nacos.WithRefreshInterval(...)`，需删除该调用。
+> Nacos Registry 通过 watch 事件感知服务实例变化，无需配置轮询刷新。
 
 ### 服务发现
 
@@ -483,7 +481,7 @@ plaintext, err := ecc.Decrypt(privateKey, ciphertext)
 
 ### Session 管理 (v2.5.8)
 
-在 due v2.5.8 中，Session 通过 Context 获取：
+在 due 中，Session 通过 Context 获取：
 
 ```go
 func handler(ctx gate.Context) {
@@ -519,9 +517,9 @@ func onDisconnect(ctx gate.Context) {
 }
 ```
 
-### v2.5.8 Session 新特性：disconnect 参数
+### Session disconnect 参数
 
-v2.5.8 的 Session API 新增了 `disconnect` 参数，支持推送消息后自动关闭连接：
+Session API 提供了 `disconnect` 参数，支持推送消息后自动关闭连接：
 
 ```go
 // Push 推送消息（异步）
@@ -538,7 +536,7 @@ session.Broadcast(gate.User, false, broadcastMessage)
 session.Publish("channel", false, channelMessage)
 ```
 
-**性能优化：** v2.5.8 使用 `errgroup` 并发处理 Multicast/Broadcast/Publish，大幅提升批量推送性能。
+**性能优化：** Multicast/Broadcast/Publish 使用 `errgroup` 并发处理 Multicast/Broadcast/Publish，大幅提升批量推送性能。
 
 ## 任务组件 (task)
 

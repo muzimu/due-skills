@@ -21,6 +21,7 @@ func main() {
 		tcp.WithServerMaxConnNum(10000),
 		tcp.WithServerWriteQueueSize(1024),
 		tcp.WithServerHeartbeatInterval(60*time.Second),
+		tcp.WithServerAuthorizeTimeout(30*time.Second), // 授权超时：30秒内未Bind则断开，0s表示不检测
 	)
 
 	// 创建定位器

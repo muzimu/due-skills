@@ -1,6 +1,6 @@
 # due 架构设计模式 (v2.5.8)
 
-本文档详细介绍 due v2.5.8 框架的架构设计模式和核心概念。
+本文档详细介绍 due 框架的架构设计模式和核心概念。
 
 ## 三层架构
 
@@ -69,7 +69,6 @@ func main() {
         gate.WithServer(server),
         gate.WithLocator(locator),
         gate.WithRegistry(registry),
-        // v2.5.8: 新增 RPC 配置选项
         gate.WithConnNum(5),
         gate.WithCallTimeout(3*time.Second),
     )
@@ -114,7 +113,6 @@ func main() {
         node.WithName("node"),
         node.WithLocator(locator),
         node.WithRegistry(registry),
-        // v2.5.8: 新增 RPC 配置选项
         node.WithConnNum(5),
         node.WithCallTimeout(3*time.Second),
     )
@@ -145,7 +143,7 @@ func initListen(proxy *node.Proxy) {
 
 ## 服务发现 (v2.5.8)
 
-due v2.5.8 支持多种服务发现后端，模块路径为 `/v2`：
+due 支持多种服务发现后端，模块路径为 `/v2`：
 
 ### Consul (v2.5.8)
 
@@ -189,7 +187,7 @@ reg := nacos.NewRegistry(
 通过 RPC 通信，支持 gRPC 和 RPCX：
 
 ```go
-// RPCX 传输 (v2.5.8 推荐)
+// RPCX 传输 （推荐）
 import "github.com/dobyte/due/transport/rpcx/v2"
 
 trans := rpcx.NewTransporter()
@@ -198,7 +196,6 @@ component := node.NewNode(
     node.WithLocator(locator),
     node.WithRegistry(registry),
     node.WithTransporter(trans),
-    // v2.5.8: 新增 RPC 配置选项
     node.WithConnNum(5),
     node.WithCallTimeout(3*time.Second),
 )
@@ -240,7 +237,7 @@ due 使用 Actor 模型处理有状态游戏逻辑：
 
 ### Actor 生命周期 (v2.5.8)
 
-在 due v2.5.8 中，Actor 通过 Router 处理器实现：
+在 due 中，Actor 通过 Router 处理器实现：
 
 ```go
 import (

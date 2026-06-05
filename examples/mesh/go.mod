@@ -6,7 +6,7 @@ require (
 	github.com/dobyte/due/locate/redis/v2 v2.0.0-20260519025642-395171390204
 	github.com/dobyte/due/registry/consul/v2 v2.0.0-20260519025642-395171390204
 	github.com/dobyte/due/transport/rpcx/v2 v2.0.0-20260519025642-395171390204
-	github.com/dobyte/due/v2 v2.5.7
+	github.com/dobyte/due/v2 v2.5.8
 )
 
 require (

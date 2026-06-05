@@ -92,7 +92,7 @@ server := ws.NewServer(
 ```go
 // 调整 KCP 配置
 server := kcp.NewServer(
-    kcp.WithServerNoDelay(1, 10, 2, 1),  // 无延迟配置
+    kcp.WithServerNoDelay([]int{1, 10, 2, 1}),  // 无延迟配置
     kcp.WithServerAckNoDelay(true),       // ACK 无延迟
 )
 
