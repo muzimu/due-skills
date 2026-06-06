@@ -41,8 +41,7 @@ allowed-tools:
   - Edit
   - Write
   - Bash
-  - task
-  - todowrite
+  - TodoWrite
   - lsp_diagnostics
   - lsp_goto_definition
   - lsp_find_references
@@ -51,7 +50,6 @@ allowed-tools:
   - lsp_rename
   - ast_grep_search
   - ast_grep_replace
-  - glob
   - websearch
   - webfetch
   - codesearch
@@ -66,29 +64,12 @@ trigger-keywords:
   - "AddRouteHandler"
   - "github.com/dobyte/due"
   - "due-skills"
-  - "websocket"
-  - "TCP"
-  - "KCP"
-  - "Actor"
-  - "Consul"
-  - "Etcd"
-  - "Nacos"
-  - "Redis"
-  - "EventBus"
-  - "rpcx"
-  - "grpc"
+  - "dobyte/due"
   - "http.NewServer"
-  - "http.Server"
   - "http.Context"
-  - "http.Handler"
-  - "fiber"
-  - "REST API"
-  - "Swagger"
   - "tcp.NewClient"
   - "ws.NewClient"
   - "client.NewClient"
-  - "network.Client"
-  - "network.Conn"
   - "cluster/client"
   - "etcd.WithUsername"
   - "etcd.WithPassword"
@@ -106,7 +87,9 @@ directories:
 
 # due Skills for AI Agents
 
-This skill provides comprehensive due game server framework knowledge (v2.5.8), optimized for AI agents helping developers build production-ready distributed game servers. due is a lightweight, high-performance distributed game server framework (Apache 2.0 license), featuring standardized development patterns and proven deployment in enterprise game projects.
+> **IRON LAW**: 始终使用正确的模块路径 `github.com/dobyte/due/v2`，不得使用旧版路径。生成完整项目前，先确认服务拓扑（Gate/Node/Mesh 哪些）、协议（TCP/KCP/WS）、服务发现方案（Consul/Etcd/Nacos），再动手写代码。如不确定某 API 是否存在，先查阅对应 pattern 文件，不得凭记忆猜测。
+
+This skill provides comprehensive due game server framework knowledge (v2.5.8) for building production-ready distributed game servers. due is a lightweight, high-performance distributed game server framework (Apache 2.0).
 
 **v2.5.8 Core Capabilities:**
 - Fine-grained RPC configuration for Gate/Node/Mesh (connNum, callTimeout, dialTimeout, dialRetryTimes, writeTimeout, writeQueueSize, faultRecoveryTime)
@@ -114,20 +97,6 @@ This skill provides comprehensive due game server framework knowledge (v2.5.8), 
 - HTTP Router: All method plus multiple handler styles (due/fiber/express/net/http/fasthttp)
 - Multi-address components use `WithAddrs` (redis/etcd/kafka/memcache); NATS uses `WithUrl`; Nacos uses `WithUrls`
 - Etcd registry and config-center support `WithUsername`/`WithPassword` (and `username`/`password` in etc.yaml) for authenticated clusters
-
-## 🎯 When to Use This Skill
-
-Invoke this skill when working with due:
-- **Creating game servers**: Gate services, Node services, or Mesh microservices
-- **Protocol implementation**: TCP, KCP, or WebSocket client connections
-- **Actor model**: Implementing stateful game logic with due Actor system
-- **HTTP/REST API development**: Building web servers, REST APIs, or HTTP microservices
-- **Swagger documentation**: Generating and serving API documentation
-- **Client development**: Building TCP/WebSocket clients for connecting to game servers
-- **Service discovery**: Consul, Etcd, or Nacos integration
-- **Event-driven architecture**: Redis, NATS, Kafka, or RabbitMQ event buses
-- **Caching strategies**: Redis or Memcache integration
-- **Message routing**: Custom route handling and serialization
 
 ## 📚 Knowledge Structure
 
@@ -321,155 +290,10 @@ When generating or reviewing due code, always apply these principles:
 - **Module path**: github.com/dobyte/due/v2
 - **Dependencies**: grpc, rpcx, redis, nats, kafka, rabbitmq drivers as needed
 
-## 🚀 Quick Start (v2.5.8)
+## 🚀 Quick Start
 
 ```bash
-# Get due v2.5.8
 go get -u github.com/dobyte/due/v2@latest
-
-# Get required components
-go get -u github.com/dobyte/due/locate/redis/v2@latest
-go get -u github.com/dobyte/due/network/ws/v2@latest
-go get -u github.com/dobyte/due/registry/consul/v2@latest
-go get -u github.com/dobyte/due/transport/rpcx/v2@latest
-go get -u github.com/dobyte/due/component/http/v2@latest
 ```
 
-**Gate Server Example (v2.5.8):**
-```go
-package main
-
-import (
-   "github.com/dobyte/due/locate/redis/v2"
-   "github.com/dobyte/due/network/ws/v2"
-   "github.com/dobyte/due/registry/consul/v2"
-   "github.com/dobyte/due/v2"
-   "github.com/dobyte/due/v2/cluster/gate"
-)
-
-func main() {
-   container := due.NewContainer()
-   server := ws.NewServer()
-   locator := redis.NewLocator()
-   registry := consul.NewRegistry()
-   component := gate.NewGate(
-      gate.WithServer(server),
-      gate.WithLocator(locator),
-      gate.WithRegistry(registry),
-      gate.WithCallTimeout(5*time.Second),
-      gate.WithDialTimeout(3*time.Second),
-      gate.WithWriteTimeout(0),
-      gate.WithWriteQueueSize(4096),
-   )
-   container.Add(component)
-   container.Serve()
-}
-```
-
-**Node Server Example (v2.5.8):**
-```go
-package main
-
-import (
-   "github.com/dobyte/due/locate/redis/v2"
-   "github.com/dobyte/due/registry/consul/v2"
-   "github.com/dobyte/due/v2"
-   "github.com/dobyte/due/v2/cluster/node"
-)
-
-func main() {
-   container := due.NewContainer()
-   locator := redis.NewLocator()
-   registry := consul.NewRegistry()
-   component := node.NewNode(
-      node.WithLocator(locator),
-      node.WithRegistry(registry),
-      node.WithConnNum(10),
-      node.WithCallTimeout(5*time.Second),
-   )
-   initListen(component.Proxy())
-   container.Add(component)
-   container.Serve()
-}
-
-func initListen(proxy *node.Proxy) {
-   proxy.Router().AddRouteHandler(routeID, isSync, handlerFunc)
-}
-```
-
-**HTTP Server Example (v2.5.8):**
-```go
-package main
-
-import (
-   "github.com/dobyte/due/component/http/v2"
-   "github.com/dobyte/due/v2"
-   "github.com/dobyte/due/v2/codes"
-)
-
-func main() {
-   container := due.NewContainer()
-   component := http.NewServer(
-      http.WithName("api-server"),
-      http.WithAddr(":8080"),
-      http.WithConsole(true),
-   )
-   initApp(component.Proxy())
-   container.Add(component)
-   container.Serve()
-}
-
-func initApp(proxy *http.Proxy) {
-   router := proxy.Router()
-   router.Get("/api/v1/greet", func(ctx http.Context) error {
-      return ctx.Success("Hello")
-   })
-   router.Post("/api/v1/users", func(ctx http.Context) error {
-      // 处理创建用户
-      return ctx.Failure(codes.InvalidArgument)
-   })
-}
-```
-
-**Client Example (v2.5.8):**
-```go
-package main
-
-import (
-   "github.com/dobyte/due/cluster/client/v2"
-   "github.com/dobyte/due/cluster/v2"
-   "github.com/dobyte/due/encoding/json"
-   "github.com/dobyte/due/network/tcp/v2"  // 或 "github.com/dobyte/due/network/ws/v2"
-   "github.com/dobyte/due/v2"
-   "github.com/dobyte/due/v2/log"
-)
-
-func main() {
-   container := due.NewContainer()
-   c := client.NewClient(
-      client.WithName("my-client"),
-      client.WithCodec(json.NewCodec()),
-      client.WithClient(tcp.NewClient()),  // 或 ws.NewClient()
-   )
-   initApp(c.Proxy())
-   container.Add(c)
-   container.Serve()
-}
-
-func initApp(proxy *client.Proxy) {
-   proxy.AddHookListener(cluster.Start, func(p *client.Proxy) {
-      conn, _ := p.Dial(client.WithDialAddr("127.0.0.1:3553"))
-      conn.Push(&cluster.Message{Route: 1, Data: "hello"})
-   })
-   proxy.AddRouteHandler(1, func(ctx *client.Context) {
-      var res string
-      ctx.Parse(&res)
-      log.Info("收到响应:", res)
-   })
-}
-```
-
----
-
-**Quick invocation**: Use `/due-skills` or ask "How do I [task] with due?"
-**Need help?** Reference the specific pattern guide for detailed examples.
+→ 完整安装和示例见 [getting-started/README.md](getting-started/README.md)
